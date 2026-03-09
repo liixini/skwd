@@ -1,12 +1,18 @@
 # Piixident - A skewed take on shells
 
+![Desktop view](image.png)
+![Wallpaper switcher](image-1.png)
+![Window switcher](image-2.png)
+![App launcher](image-4.png)
+
+
 ## Please read before continuing - It is important believe it or not
 
 This is my daily-driver personal desktop shell, built with [Quickshell](https://quickshell.outfoxxed.me/) (Qt6/QML). I use Niri but I have added functionality for Hyprland and a best-guess stub for Sway configuration. If you're a person that is using a sane person default like say KDE Plasma on Fedora I'm sure you can figure out how to run the Quickshell components of this repository.
 
 While I am a professional at writing code I am not a professional at writing Quickshell, Bash or Python which is the main parts of this project and if something has better options for execution feel free to inform me about better solutions - there is no pride here!
 
-This software is released in what can only be considered working prototype stage as it was never intended to be released to the public but there was a large interest in it so here we are.
+This software is released in working prototype stage as it was never intended to be released to the public but there was a large interest in it so here we are.
 
 **I use AI tooling while developing** just like I do in my professional life.
 Some of the code is AI, but most of the code and terrible decisions is in fact me.
@@ -117,7 +123,7 @@ layer-rule {
         xray false        
     }
 }
-y
+
 layer-rule {
     match namespace="^linux-wallpaperengine$"
     place-within-backdrop true

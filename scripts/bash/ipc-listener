@@ -27,8 +27,7 @@ echo $$ > "$PIDFILE"
 trap 'rm -f "$PIDFILE"; kill $(jobs -p) 2>/dev/null; exit' TERM HUP EXIT INT
 
 # Blocking read loop (cat blocks until data arrives)
-# Use sed to ensure line buffering - it automatically flushes on newlines
 while true; do
-    sed -u '' "$FIFO" &
+    cat "$FIFO" &
     wait $!
 done
