@@ -353,6 +353,59 @@ else
   echo "Python venv already exists at scripts/.venv"
 fi
 
+# Ollama setup
+if ! command -v ollama >/dev/null 2>&1; then
+  echo ""
+  read -rp "Install Ollama (local offline LLM) for LLM wallpaper analysis? It works better than the python script and it is mandatory for the tag search feature [y/N] " ollama_ans
+  if [[ "$ollama_ans" == "y" || "$ollama_ans" == "Y" ]]; then
+    if [[ -n "$installer" ]]; then
+      install_${installer}_packages "${PKG_MAP[ollama]}"
+    else
+      echo "  Could not auto-install ollama on this distro. Install it manually."
+    fi
+  fi
+fi
+
+if command -v ollama >/dev/null 2>&1; then
+  if ! ollama list 2>/dev/null | grep -q "gemma3:4b"; then
+    echo ""
+    read -rp "Pull the gemma3:4b model for Ollama? This is required for LLM computer vision. You can say no and install your own model if you wish. [y/N] " model_ans
+    if [[ "$model_ans" == "y" || "$model_ans" == "Y" ]]; then
+      echo "  Pulling gemma3:4b — this may take a while..."
+      ollama pull gemma3:4b
+      echo "  Done."
+    fi
+  else
+    echo "  Ollama gemma3:4b model already available."
+  fi
+fi
+
+# Wallpaper Engine setup — offer to install linux-wallpaperengine if not present
+if ! command -v linux-wallpaperengine >/dev/null 2>&1; then
+  echo ""
+  echo "  linuxwallpaperengine lets you use Steam Workshop wallpapers."
+  echo "  NOTE: You must own Wallpaper Engine on Steam and have it installed before this will work."
+  echo ""
+  read -rp "Install linux-wallpaperengine? [y/N] " lwe_ans
+  if [[ "$lwe_ans" == "y" || "$lwe_ans" == "Y" ]]; then
+    if [[ -n "$installer" ]]; then
+      install_${installer}_packages "${PKG_MAP[linux-wallpaperengine]}"
+    else
+      echo "  Could not auto-install on this distro. Install it manually."
+    fi
+  fi
+fi
+
+if command -v linux-wallpaperengine >/dev/null 2>&1; then
+  if [[ -z "$we_assets" ]]; then
+    echo ""
+    echo "  WARNING: linux-wallpaperengine is installed but Wallpaper Engine's"
+    echo "  Steam assets directory was not found. Make sure you have Wallpaper"
+    echo "  Engine installed via Steam, then re-run setup or update the paths"
+    echo "  in data/config.json manually."
+  fi
+fi
+
 # Create IPC named pipe
 RUNTIME="${XDG_RUNTIME_DIR:-/tmp}/piixident"
 mkdir -p "$RUNTIME"
@@ -361,6 +414,7 @@ if [ ! -p "$RUNTIME/cmd" ]; then
   echo "Created IPC FIFO at $RUNTIME/cmd"
 fi
 
+echo ""
 echo "Initial setup complete, now you need to customise the settings in config.json and add some wallpapers to ~/wallpaper/"
 echo "Next steps:"
 echo "  1. Edit data/config.json to set your city, paths, etc."
@@ -370,7 +424,6 @@ echo ""
 echo "Optional:"
 echo "  - Edit data/secrets.json for Home Assistant integration"
 echo "  - Install matugen for dynamic color schemes"
-echo "  - Install Ollama for AI wallpaper analysis"
 echo ""
 echo "IPC commands: echo 'launcher' > ${RUNTIME}/cmd"
 echo "Supported: lock, powermenu, launcher, toggleBar, wallpaper,"
