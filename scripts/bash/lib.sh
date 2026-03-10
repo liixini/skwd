@@ -10,6 +10,16 @@ export PIIXIDENT_CFG="$PIIXIDENT_CONFIG/data/config.json"
 # Ensure runtime and cache directories exist
 mkdir -p "$PIIXIDENT_RUNTIME" 2>/dev/null
 mkdir -p "$PIIXIDENT_CACHE" 2>/dev/null
+mkdir -p "$PIIXIDENT_CACHE/wallpaper" 2>/dev/null
+mkdir -p "$PIIXIDENT_CACHE/app-launcher" 2>/dev/null
+
+# Seed cache files that QML components expect
+[ -f "$PIIXIDENT_CACHE/bar-state" ] || echo "true" > "$PIIXIDENT_CACHE/bar-state" 2>/dev/null
+[ -f "$PIIXIDENT_CACHE/colors.json" ] || echo '{}' > "$PIIXIDENT_CACHE/colors.json" 2>/dev/null
+[ -f "$PIIXIDENT_CACHE/wallpaper/tags.json" ] || echo '{}' > "$PIIXIDENT_CACHE/wallpaper/tags.json" 2>/dev/null
+[ -f "$PIIXIDENT_CACHE/wallpaper/colors.json" ] || echo '{}' > "$PIIXIDENT_CACHE/wallpaper/colors.json" 2>/dev/null
+[ -f "$PIIXIDENT_CACHE/wallpaper/matugen-colors.json" ] || echo '{}' > "$PIIXIDENT_CACHE/wallpaper/matugen-colors.json" 2>/dev/null
+[ -f "$PIIXIDENT_CACHE/app-launcher/freq.json" ] || echo '{}' > "$PIIXIDENT_CACHE/app-launcher/freq.json" 2>/dev/null
 
 # Read a jq path from config.json, expand ~ to $HOME
 cfg_get() {

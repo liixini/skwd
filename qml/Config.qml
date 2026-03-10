@@ -57,13 +57,11 @@ QtObject {
     // Component enable/disable flags
     property var _components: _data.components ?? {}
     readonly property bool barEnabled: _components.bar !== false
-    readonly property bool lockscreenEnabled: _components.lockscreen !== false
     readonly property bool appLauncherEnabled: _components.appLauncher !== false
     readonly property bool wallpaperSelectorEnabled: _components.wallpaperSelector !== false
     readonly property bool windowSwitcherEnabled: _components.windowSwitcher !== false
     readonly property bool workspaceSwitcherEnabled: _components.workspaceSwitcher !== false
     readonly property bool powerMenuEnabled: _components.powerMenu !== false
-    readonly property bool smartHomeEnabled: _components.smartHome !== false
     readonly property bool notificationsEnabled: _components.notifications !== false
     readonly property bool weatherEnabled: _components.weather !== false
     readonly property bool wifiEnabled: _components.wifi !== false
@@ -71,4 +69,7 @@ QtObject {
     readonly property bool volumeEnabled: _components.volume !== false
     readonly property bool calendarEnabled: _components.calendar !== false
     readonly property bool lyricsEnabled: _components.lyrics !== false
+    // These require extra setup (Home Assistant / PAM lockscreen) and are still WIP.
+    readonly property bool lockscreenEnabled: _components.lockscreen === true
+    readonly property bool smartHomeEnabled: _components.smartHome === true
 }
