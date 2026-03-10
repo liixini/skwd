@@ -307,78 +307,26 @@ mkdir -p "${XDG_RUNTIME_DIR:-/tmp}/piixident" 2>/dev/null || true
 [ -f "$HOME/.cache/piixident/wallpaper/matugen-colors.json" ] || echo '{}' > "$HOME/.cache/piixident/wallpaper/matugen-colors.json"
 [ -f "$HOME/.cache/piixident/app-launcher/freq.json" ] || echo '{}' > "$HOME/.cache/piixident/app-launcher/freq.json"
 
-# Generate or skip config.json
-if [ -f "$CONFIG_FILE" ]; then
-  echo "config.json already exists at $CONFIG_FILE"
-  read -rp "Overwrite? [y/N] " overwrite
-  if [ "$overwrite" != "y" ] && [ "$overwrite" != "Y" ]; then
-    echo "Skipping config.json generation."
-    echo ""
-  else
-    generate_config=true
-  fi
-else
-  generate_config=true
-fi
-
-if [ "$generate_config" = true ]; then
-  cat > "$CONFIG_FILE" << EOF
-{
-  "compositor": "$compositor",
-  "paths": {
-    "scripts": "~/.config/piixident/scripts",
-    "cache": "~/.cache/piixident",
-    "wallpaper": "~/wallpaper",
-    "steamWorkshop": "${we_dir:-}",
-    "steamWeAssets": "${we_assets:-}",
-    "steam": "${steam_dir:-}"
-  },
-  "monitor": "$monitor",
-  "location": {
-    "city": "",
-    "timezone": ""
-  },
-  "network": {
-    "wifiInterface": "$wifi_if"
-  },
-  "ollama": {
-    "url": "http://localhost:11434",
-    "model": "gemma3:4b",
-    "vramReclaimModel": "gemma3:27b"
-  },
-  "matugen": {
-    "schemeType": "scheme-fidelity",
-    "kdeColorScheme": "PiixidentMatugen"
-  },
-  "intervals": {
-    "weatherPollMs": 600000,
-    "wifiPollMs": 10000,
-    "smartHomePollMs": 5000,
-    "ollamaStatusPollMs": 5000,
-    "notificationExpireMs": 8000,
-    "systemStatsFastSec": 3,
-    "systemStatsSlowSec": 30
-  },
-  "components": {
-    "bar": true,
-    "lockscreen": false,
-    "appLauncher": true,
-    "wallpaperSelector": true,
-    "windowSwitcher": true,
-    "workspaceSwitcher": true,
-    "powerMenu": true,
-    "smartHome": false,
-    "notifications": true,
-    "weather": true,
-    "wifi": true,
-    "bluetooth": true,
-    "volume": true,
-    "calendar": true,
-    "lyrics": true
-  }
-}
-EOF
-  echo "Generated $CONFIG_FILE"
+# Create config.json from example if missing
+if [ ! -f "$CONFIG_FILE" ]; then
+  cp "$PROJECT_DIR/data/config.json.example" "$CONFIG_FILE"
+  # Patch in auto-detected values
+  tmp=$(mktemp)
+  jq \
+    --arg compositor "$compositor" \
+    --arg monitor "$monitor" \
+    --arg wifi_if "$wifi_if" \
+    --arg we_dir "${we_dir:-}" \
+    --arg we_assets "${we_assets:-}" \
+    --arg steam_dir "${steam_dir:-}" \
+    '.compositor = $compositor
+     | .monitor = $monitor
+     | .network.wifiInterface = $wifi_if
+     | .paths.steamWorkshop = $we_dir
+     | .paths.steamWeAssets = $we_assets
+     | .paths.steam = $steam_dir' \
+    "$CONFIG_FILE" > "$tmp" && mv "$tmp" "$CONFIG_FILE"
+  echo "Created data/config.json from example"
 fi
 
 # Create secrets.json from example if missing
