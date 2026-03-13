@@ -59,8 +59,8 @@ You'll need Linux and a Wayland compositor - I recommend Niri.
 #### Optional
 | Dependency | Purpose |
 |---|---|
-| **ollama** | Local LLM for wallpaper analysis/tagging — optional but colour sorting is much better with it. I recommend the Gemma3:4b model. |
-| **python-pam** or **pamela** | PAM authentication for the lockscreen |
+| **ollama** | Local LLM for wallpaper analysis/tagging - optional but colour sorting is much better with it. I recommend the Gemma3:4b model which is also installed in the install script. |
+| **python-pam** or **pamela** | PAM authentication for the lockscreen, currently WIP and the lockscreen is not shipped as it is very hacky and only viable as a PoC |
 
 ```bash
 git clone https://github.com/liixini/piixident ~/.config/piixident

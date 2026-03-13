@@ -33,7 +33,7 @@ Scope {
   }
 
 
-  property int popupWidth: 380
+  property int popupWidth: 320
   property int popupSpacing: 8
   property int popupMaxVisible: 4
   property int popupRightMargin: 16
@@ -113,25 +113,82 @@ Scope {
       }
 
       property color lineColor: notifScope.colors ? notifScope.colors.primary : "#ffb4ab"
+      property real slant: 28
 
-      Rectangle {
+      Canvas {
         id: centerBg
         anchors.fill: parent
-        radius: 12
-        color: notifScope.colors
-          ? Qt.rgba(notifScope.colors.surface.r,
-                    notifScope.colors.surface.g,
-                    notifScope.colors.surface.b, 0.88)
-          : Qt.rgba(0.1, 0.12, 0.18, 0.88)
         opacity: 0
+        onPaint: {
+          var ctx = getContext("2d")
+          ctx.clearRect(0, 0, width, height)
+          var s = centerCard.slant
+          ctx.beginPath()
+          ctx.moveTo(0, 0)
+          ctx.lineTo(width - s, 0)
+          ctx.lineTo(width, height)
+          ctx.lineTo(s, height)
+          ctx.closePath()
+          var c = notifScope.colors
+          ctx.fillStyle = c
+            ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 0.88)
+            : Qt.rgba(0.1, 0.12, 0.18, 0.88)
+          ctx.fill()
+        }
+        Connections {
+          target: notifScope
+          function onColorsChanged() { centerBg.requestPaint() }
+        }
       }
 
       NumberAnimation { id: centerBgFadeIn; target: centerBg; property: "opacity"; from: 0; to: 1; duration: 600; easing.type: Easing.OutCubic }
 
-      AnimatedBorderBox {
+      Canvas {
         id: centerBorderBox
-        lineColor: centerCard.lineColor
-        duration: 600
+        anchors.fill: parent
+        property real progress: 0
+        function animate() { centerBorderAnim.restart() }
+        function reset() { centerBorderAnim.stop(); progress = 0; requestPaint() }
+        onPaint: {
+          var ctx = getContext("2d")
+          ctx.clearRect(0, 0, width, height)
+          var s = centerCard.slant
+          var p = progress
+          if (p <= 0) return
+          ctx.strokeStyle = centerCard.lineColor
+          ctx.lineWidth = 2
+          ctx.lineCap = "round"
+          var perim = width * 2 + height * 2
+          var len = perim * p
+          var segments = [
+            {x1: 0, y1: 0, x2: width - s, y2: 0, len: width - s},
+            {x1: width - s, y1: 0, x2: width, y2: height, len: Math.sqrt(s*s + height*height)},
+            {x1: width, y1: height, x2: s, y2: height, len: width - s},
+            {x1: s, y1: height, x2: 0, y2: 0, len: Math.sqrt(s*s + height*height)}
+          ]
+          ctx.beginPath()
+          var remain = len
+          var started = false
+          for (var i = 0; i < segments.length && remain > 0; i++) {
+            var seg = segments[i]
+            if (!started) { ctx.moveTo(seg.x1, seg.y1); started = true }
+            var frac = Math.min(1, remain / seg.len)
+            var ex = seg.x1 + (seg.x2 - seg.x1) * frac
+            var ey = seg.y1 + (seg.y2 - seg.y1) * frac
+            ctx.lineTo(ex, ey)
+            remain -= seg.len
+          }
+          ctx.stroke()
+        }
+        onProgressChanged: requestPaint()
+        NumberAnimation {
+          id: centerBorderAnim
+          target: centerBorderBox
+          property: "progress"
+          from: 0; to: 1
+          duration: 600
+          easing.type: Easing.OutCubic
+        }
       }
 
 
@@ -144,13 +201,15 @@ Scope {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.margins: 16
+        anchors.leftMargin: centerCard.slant + 8
+        anchors.rightMargin: centerCard.slant + 8
+        anchors.topMargin: 16
         height: 36
 
         Text {
           text: "NOTIFICATIONS"
           font.family: Style.fontFamily
-          font.weight: Font.Bold
+          font.weight: Font.Medium
           font.pixelSize: 14
           color: notifScope.colors ? notifScope.colors.primary : "#ffb4ab"
           Layout.fillWidth: true
@@ -172,7 +231,7 @@ Scope {
             anchors.centerIn: parent
             text: "CLEAR ALL"
             font.family: Style.fontFamily
-            font.weight: Font.Bold
+            font.weight: Font.Medium
             font.pixelSize: 11
             color: dismissAllMouse.containsMouse
               ? (notifScope.colors ? notifScope.colors.primaryForeground : "#690005")
@@ -197,7 +256,9 @@ Scope {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 12
+        anchors.leftMargin: centerCard.slant + 4
+        anchors.rightMargin: centerCard.slant + 4
+        anchors.bottomMargin: 12
         clip: true
         contentHeight: centerColumn.implicitHeight
         flickableDirection: Flickable.VerticalFlick
@@ -273,7 +334,7 @@ Scope {
     // Card properties
     property var notification
     property var colors
-    property int cardWidth: 380
+    property int cardWidth: 320
     property bool isPopup: true
 
     width: cardWidth
@@ -360,21 +421,74 @@ Scope {
 
     property real lineProgress: 0
     property color lineColor: colors ? colors.primary : "#ffb4ab"
+    property real slant: 28
 
-    Rectangle {
+    Canvas {
       id: cardBg
       anchors.fill: parent
-      radius: 10
-      color: colors
-        ? Qt.rgba(colors.surface.r, colors.surface.g, colors.surface.b, 0.88)
-        : Qt.rgba(0.1, 0.12, 0.18, 0.88)
       opacity: 0
+      onPaint: {
+        var ctx = getContext("2d")
+        ctx.clearRect(0, 0, width, height)
+        var s = card.slant
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.lineTo(width - s, 0)
+        ctx.lineTo(width, height)
+        ctx.lineTo(s, height)
+        ctx.closePath()
+        var c = card.colors
+        ctx.fillStyle = c
+          ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 0.88)
+          : Qt.rgba(0.1, 0.12, 0.18, 0.88)
+        ctx.fill()
+      }
+      Connections {
+        target: card
+        function onColorsChanged() { cardBg.requestPaint() }
+      }
     }
 
-    AnimatedBorderBox {
-      lineColor: card.lineColor
-      progress: card.lineProgress
-      lineOpacity: card.lineProgress
+    Canvas {
+      id: cardBorder
+      anchors.fill: parent
+      opacity: card.lineProgress
+      onPaint: {
+        var ctx = getContext("2d")
+        ctx.clearRect(0, 0, width, height)
+        var s = card.slant
+        var p = card.lineProgress
+        if (p <= 0) return
+        ctx.strokeStyle = card.lineColor
+        ctx.lineWidth = 2
+        ctx.lineCap = "round"
+        var perim = width * 2 + height * 2
+        var len = perim * p
+        var segments = [
+          {x1: 0, y1: 0, x2: width - s, y2: 0, len: width - s},
+          {x1: width - s, y1: 0, x2: width, y2: height, len: Math.sqrt(s*s + height*height)},
+          {x1: width, y1: height, x2: s, y2: height, len: width - s},
+          {x1: s, y1: height, x2: 0, y2: 0, len: Math.sqrt(s*s + height*height)}
+        ]
+        ctx.beginPath()
+        var remain = len
+        var started = false
+        for (var i = 0; i < segments.length && remain > 0; i++) {
+          var seg = segments[i]
+          if (!started) { ctx.moveTo(seg.x1, seg.y1); started = true }
+          var frac = Math.min(1, remain / seg.len)
+          var ex = seg.x1 + (seg.x2 - seg.x1) * frac
+          var ey = seg.y1 + (seg.y2 - seg.y1) * frac
+          ctx.lineTo(ex, ey)
+          remain -= seg.len
+        }
+        ctx.stroke()
+      }
+      Connections {
+        target: card
+        function onLineProgressChanged() { cardBorder.requestPaint() }
+        function onLineColorChanged() { cardBorder.requestPaint() }
+      }
     }
 
 
@@ -382,7 +496,8 @@ Scope {
     Item {
       id: cardContent
       anchors.fill: parent
-      anchors.margins: 1
+      anchors.leftMargin: card.slant + 1
+      anchors.rightMargin: card.slant + 1
 
       ColumnLayout {
         id: contentColumn
@@ -395,17 +510,35 @@ Scope {
 
         RowLayout {
           Layout.fillWidth: true
+          spacing: 6
 
           Text {
             text: card.notification ? (card.notification.appName || "Notification") : "Notification"
             font.family: Style.fontFamily
-            font.weight: Font.DemiBold
-            font.pixelSize: 11
+            font.weight: Font.Medium
+            font.pixelSize: 12
             color: card.colors ? card.colors.primary : "#ffb4ab"
-            opacity: 0.9
-            Layout.fillWidth: true
           }
 
+          Text {
+            text: "·"
+            font.pixelSize: 12
+            font.weight: Font.Medium
+            color: card.colors ? card.colors.outline : "#666"
+            visible: summaryLabel.text !== ""
+          }
+
+          Text {
+            id: summaryLabel
+            text: card.notification ? (card.notification.summary || "") : ""
+            font.family: Style.fontFamily
+            font.weight: Font.Medium
+            font.pixelSize: 12
+            color: card.colors ? card.colors.tertiary : "#8bceff"
+            elide: Text.ElideRight
+            Layout.fillWidth: true
+            visible: text !== ""
+          }
 
           Text {
             text: "✕"
@@ -427,23 +560,10 @@ Scope {
 
 
         Text {
-          text: card.notification ? (card.notification.summary || "") : ""
-          font.family: Style.fontFamily
-          font.weight: Font.DemiBold
-          font.pixelSize: 14
-          color: card.colors ? card.colors.tertiary : "#8bceff"
-          wrapMode: Text.Wrap
-          Layout.fillWidth: true
-          visible: text !== ""
-        }
-
-
-        Text {
           text: card.notification ? (card.notification.body || "") : ""
           font.family: Style.fontFamily
           font.pixelSize: 12
           color: card.colors ? card.colors.surfaceVariantText : "#e2beba"
-          opacity: 0.85
           wrapMode: Text.Wrap
           Layout.fillWidth: true
           visible: text !== ""
@@ -477,7 +597,7 @@ Scope {
                 anchors.centerIn: parent
                 text: action.text || ""
                 font.family: Style.fontFamily
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 font.pixelSize: 11
                 color: actionMouse.containsMouse
                   ? (card.colors ? card.colors.primaryForeground : "#690005")

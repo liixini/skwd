@@ -785,55 +785,76 @@ Item {
       ctx.closePath()
       ctx.clip()
 
+      var sur = lyricsIsland.colors.surface
       var pri = lyricsIsland.colors.primary
-      var ter = lyricsIsland.colors.tertiary
       var theme = lyricsIsland.vizTheme
 
+      // Fill the region from top edge down to the waveform with the island
+      // surface color, so it looks like the island background extends into
+      // the visualizer shape.
       if (theme === "bars") {
-        var grad = ctx.createLinearGradient(0, 0, 0, height)
-        grad.addColorStop(0, Qt.rgba(pri.r, pri.g, pri.b, 0.3))
-        grad.addColorStop(1, Qt.rgba(pri.r, pri.g, pri.b, 0.05))
-        ctx.fillStyle = grad
+        // Surface-coloured bars
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
         lyricsIsland._vizDrawBars(ctx, raw, baseY, maxAmp, 1, slant, width)
       } else if (theme === "blocks") {
-        ctx.fillStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.25)
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
         lyricsIsland._vizDrawBlocks(ctx, raw, baseY, maxAmp, 1, slant, width)
       } else if (theme === "dots") {
-        ctx.fillStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.35)
-        ctx.strokeStyle = Qt.rgba(ter.r, ter.g, ter.b, 0.12)
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
+        ctx.strokeStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.15)
         ctx.lineWidth = 1
         lyricsIsland._vizDrawDots(ctx, raw, baseY, maxAmp, 1, slant, width)
       } else if (theme === "line") {
+        // Fill from top to waveline with surface, then stroke the line
         var vals = lyricsIsland._vizEdgePad(raw)
         var step = width / (vals.length - 1)
+        // filled region: top edge → waveline → back across bottom-of-top
+        ctx.beginPath()
+        ctx.moveTo(slant, 0)
+        ctx.lineTo(width - slant, 0)
+        // trace wave rightward at the line level
+        for (var i = vals.length - 1; i >= 0; i--) {
+          var x = i * step
+          var y = baseY + (vals[i] / 100) * maxAmp
+          ctx.lineTo(x, y)
+        }
+        ctx.closePath()
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
+        ctx.fill()
+        // accent stroke along the wave edge
         ctx.beginPath()
         lyricsIsland._vizDrawLine(ctx, vals, step, baseY, maxAmp, 1)
-        ctx.strokeStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.08)
-        ctx.lineWidth = 4
-        ctx.stroke()
-        ctx.beginPath()
-        lyricsIsland._vizDrawLine(ctx, vals, step, baseY, maxAmp, 1)
-        ctx.strokeStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.3)
-        ctx.lineWidth = 1.5
+        ctx.strokeStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.2)
+        ctx.lineWidth = 1
         ctx.stroke()
       } else {
-        // "wave" — default
+        // "wave" — default: fill from top edge down to wave contour
         var vals = lyricsIsland._vizEdgePad(raw)
         var step = width / (vals.length - 1)
 
         ctx.beginPath()
-        lyricsIsland._vizDrawWave(ctx, vals, step, baseY, maxAmp, 1)
+        // start at top-left of trapezoid
+        ctx.moveTo(slant, 0)
+        ctx.lineTo(width - slant, 0)
+        // trace wave contour backwards (right to left)
+        for (var i = vals.length - 1; i >= 0; i--) {
+          var x = i * step
+          var y = baseY + (vals[i] / 100) * maxAmp
+          if (i === vals.length - 1) {
+            ctx.lineTo(x, y)
+          } else {
+            var cpX = (x + (i + 1) * step) / 2
+            ctx.quadraticCurveTo(cpX, baseY + (vals[i+1] / 100) * maxAmp, x, y)
+          }
+        }
         ctx.closePath()
-        var grad = ctx.createLinearGradient(0, 0, 0, maxAmp)
-        grad.addColorStop(0, Qt.rgba(pri.r, pri.g, pri.b, 0.25))
-        grad.addColorStop(0.6, Qt.rgba(pri.r, pri.g, pri.b, 0.08))
-        grad.addColorStop(1, Qt.rgba(pri.r, pri.g, pri.b, 0.0))
-        ctx.fillStyle = grad
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
         ctx.fill()
 
+        // subtle accent stroke along the wave edge
         ctx.beginPath()
         lyricsIsland._vizDrawWave(ctx, vals, step, baseY, maxAmp, 1)
-        ctx.strokeStyle = Qt.rgba(ter.r, ter.g, ter.b, 0.2)
+        ctx.strokeStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.15)
         ctx.lineWidth = 1
         ctx.stroke()
       }
@@ -843,8 +864,8 @@ Item {
 
     Connections {
       target: lyricsIsland.colors
+      function onSurfaceChanged() { audioVisualizer.requestPaint() }
       function onPrimaryChanged() { audioVisualizer.requestPaint() }
-      function onTertiaryChanged() { audioVisualizer.requestPaint() }
     }
     Connections {
       target: lyricsIsland
