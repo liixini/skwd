@@ -24,4 +24,4 @@ ext/matugen/templates/*.generated
 
 .idea/
 .DS_Store
-ext/omp/piixident.omp.json
+ext/omp/skwd.omp.json

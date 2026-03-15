@@ -1,4 +1,4 @@
-# Piixident - A skewed take on shells
+# Skwd - A skewed take on shells
 
 ![Desktop view](screenshots/image.png)
 ![Wallpaper switcher](screenshots/image-1.png)
@@ -20,9 +20,20 @@ If you see something that needs fixing or can be improved feel free to reach out
 
 Note that there's code in this repository that uses the compositor value from the flag for compositor-specific actions, so chances are you will have to modify some things for it to work but there has been a best-effort made to isolate compositor-specific code to an abstraction layer in the form of the wm-action script, more about it further down.
 
-## Known defects
+## Known defects / Good to know
 
 I couldn't figure out how to grab pictures of the apps on Hyprland, so the app switcher is simply just nice coloured boxes with the app icon. If you figure it out give me a shout.
+
+A lot of nice looking stuff relies on the functionality of your compositor such as blur so you'll have to set that up as your heart desires - I make no assumptions about your compositor or how you want things to work for it.
+
+## Roadmap / TODO
+I am currently in the process of standardising this project to be automatically installable for Arch Linux, Fedora and NixOS through their respective package repositories.
+
+However it is a lot of work and testing and I have other things to do than to customise Linux like working 😭
+
+On top of that I am almost daily refactoring the code base to follow some semblence of separation of concern as it was developed in a POC fashion.
+
+After that I would like to resume work on the Smarthome component and finalise the lockscreen & greeter.
 
 ## Installing
 
@@ -62,40 +73,55 @@ You'll need Linux and a Wayland compositor - I recommend Niri.
 | **ollama** | Local LLM for wallpaper analysis/tagging - optional but colour sorting is much better with it. I recommend the Gemma3:4b model which is also installed in the install script. |
 | **python-pam** or **pamela** | PAM authentication for the lockscreen, currently WIP and the lockscreen is not shipped as it is very hacky and only viable as a PoC |
 
+### Git Clone (if you're not on Arch)
+
+WIP - Adding and testing Fedora & NixOS support
+
 ```bash
-git clone https://github.com/liixini/piixident ~/.config/piixident
-cd ~/.config/piixident
-
-# Run the setup script it should auto-detect your compositor, monitor,
-# GPU vendor, Wi-Fi interface, and Steam paths, then generates config.json
-scripts/bash/setup
-
-# Review what it generated
-data/config.json
-
-# Launch
-quickshell -p ~/.config/piixident
+git clone https://github.com/liixini/skwd ~/.config/skwd
+cd ~/.config/skwd
+./scripts/bash/setup
+skwd
 ```
 
-The setup script also creates a Python venv at `scripts/.venv` and installs the dependencies from `scripts/requirements.txt`.
+### AUR (Arch Linux)
+
+```bash
+yay -S skwd-git
+./usr/share/skwd/scripts/bash/setup
+skwd
+```
+
+### Fedora (DNF) - WIP
+
+```bash
+git clone https://github.com/liixini/skwd ~/.config/skwd
+cd ~/.config/skwd
+./scripts/bash/setup          # auto-detects Fedora and installs via dnf/COPR
+skwd
+```
+
+The setup script auto-detects your compositor, monitor, GPU, Wi-Fi interface, and Steam paths, then generates `config.json`. It creates a Python venv at `~/.config/skwd/.venv` and installs dependencies from `scripts/requirements.txt`.
+
+For AUR installs, read-only files live in `/usr/share/skwd` (set via `SKWD_INSTALL` in `/etc/profile.d/skwd.sh`). User config lives in `~/.config/skwd/data/` and cache in `~/.cache/skwd/`.
 
 ### IPC (keybindings) & Niri and Hyprland configuration
 
 The shell reads commands from a FIFO:
 
 ```bash
-echo "launcher" > "${XDG_RUNTIME_DIR}/piixident/cmd"
+echo "launcher" > "${XDG_RUNTIME_DIR}/skwd/cmd"
 ```
 
 You'll want to wire this up in your compositor config. On niri that looks like:
 
 ```
-Mod+R { spawn-sh "echo applauncher > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
+Mod+R { spawn-sh "echo applauncher > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
 ```
 on Hyprland it looks like:
 
 ```
-bind = $mainMod, R, exec, echo applauncher > ${XDG_RUNTIME_DIR}/piixident/cmd
+bind = $mainMod, R, exec, echo applauncher > ${XDG_RUNTIME_DIR}/skwd/cmd
 
 ```
 
@@ -103,11 +129,11 @@ Commands: `applauncher`, `powermenu`, `wallpaper`, `smarthome`, `toggleBar`, `no
 
 ### Provided for convenience is a full list of Niri keybinds as well as useful start configuration and layer rules:
 ```
-# Start piixident shell (via quickshell)
-spawn-at-startup "quickshell" "-p" "~/.config/piixident/shell.qml"
+# Start skwd shell (via quickshell)
+spawn-at-startup "quickshell" "-p" "~/.config/skwd/shell.qml"
 
 # Restore last wallpaper on startup
-spawn-at-startup "~/.config/piixident/scripts/bash/restore-wallpaper"
+spawn-at-startup "~/.config/skwd/scripts/bash/restore-wallpaper"
 
 layer-rule {
     match namespace="^window-switcher-parallel$"
@@ -154,40 +180,40 @@ layer-rule {
     place-within-backdrop true
 }
 
-Mod+L hotkey-overlay-title="Lock Screen" { spawn-sh "echo lock > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Mod+Shift+L hotkey-overlay-title="Toggle Power Menu" { spawn-sh "echo powermenu > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Mod+T hotkey-overlay-title="Wallpaper Selector" { spawn-sh "echo wallpaper > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Mod+D hotkey-overlay-title="Toggle Top Bar" { spawn-sh "echo toggleBar > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Mod+Shift+S hotkey-overlay-title="Toggle Smart Home" { spawn-sh "echo smarthome > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Mod+Tab hotkey-overlay-title="Workspace Switcher" { spawn-sh "echo workspaces > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Alt+Tab hotkey-overlay-title="Window Switcher" { spawn-sh "echo switcherNext > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Alt+Shift+Tab { spawn-sh "echo switcherPrev > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Alt+Return { spawn-sh "echo switcherConfirm > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Alt+Escape { spawn-sh "echo switcherCancel > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
-Alt+C { spawn-sh "echo switcherClose > ${XDG_RUNTIME_DIR}/piixident/cmd"; }
+Mod+L hotkey-overlay-title="Lock Screen" { spawn-sh "echo lock > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Mod+Shift+L hotkey-overlay-title="Toggle Power Menu" { spawn-sh "echo powermenu > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Mod+T hotkey-overlay-title="Wallpaper Selector" { spawn-sh "echo wallpaper > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Mod+D hotkey-overlay-title="Toggle Top Bar" { spawn-sh "echo toggleBar > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Mod+Shift+S hotkey-overlay-title="Toggle Smart Home" { spawn-sh "echo smarthome > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Mod+Tab hotkey-overlay-title="Workspace Switcher" { spawn-sh "echo workspaces > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Alt+Tab hotkey-overlay-title="Window Switcher" { spawn-sh "echo switcherNext > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Alt+Shift+Tab { spawn-sh "echo switcherPrev > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Alt+Return { spawn-sh "echo switcherConfirm > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Alt+Escape { spawn-sh "echo switcherCancel > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
+Alt+C { spawn-sh "echo switcherClose > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
 ```
 
 ### Provided for convenience is a full list of Hyprland keybinds as well as useful start configuration:
 ```
-# Start piixident shell (via quickshell)
-exec-once = quickshell -p ~/.config/piixident
+# Start skwd shell
+exec-once = skwd
 
 # Restore last wallpaper on startup
-exec-once = ~/.config/piixident/scripts/bash/restore-wallpaper
+exec-once = ~/.config/skwd/scripts/bash/restore-wallpaper
 
-bind = $mainMod, R, exec, echo applauncher > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod, D, exec, echo toggleBar > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod, T, exec, echo wallpaper > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod, L, exec, echo lock > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod, escape, exec, echo powermenu > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod SHIFT, L, exec, echo powermenu > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod SHIFT, S, exec, echo smarthome > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = $mainMod, TAB, exec, echo workspaces > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = ALT, TAB, exec, echo switcherNext > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = ALT SHIFT, TAB, exec, echo switcherPrev > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = ALT, RETURN, exec, echo switcherConfirm > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = ALT, escape, exec, echo switcherCancel > ${XDG_RUNTIME_DIR}/piixident/cmd
-bind = ALT, C, exec, echo switcherClose > ${XDG_RUNTIME_DIR}/piixident/cmd
+bind = $mainMod, R, exec, echo applauncher > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod, D, exec, echo toggleBar > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod, T, exec, echo wallpaper > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod, L, exec, echo lock > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod, escape, exec, echo powermenu > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod SHIFT, L, exec, echo powermenu > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod SHIFT, S, exec, echo smarthome > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = $mainMod, TAB, exec, echo workspaces > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = ALT, TAB, exec, echo switcherNext > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = ALT SHIFT, TAB, exec, echo switcherPrev > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = ALT, RETURN, exec, echo switcherConfirm > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = ALT, escape, exec, echo switcherCancel > ${XDG_RUNTIME_DIR}/skwd/cmd
+bind = ALT, C, exec, echo switcherClose > ${XDG_RUNTIME_DIR}/skwd/cmd
 ```
 
 ### Disabling stuff
@@ -254,7 +280,7 @@ Inside it's a case statement per compositor. The niri block is complete and test
 
 Every bash script sources this. It provides:
 
-- **XDG paths** - `$PIIXIDENT_CONFIG`, `$PIIXIDENT_CACHE`, `$PIIXIDENT_RUNTIME`
+- **XDG paths** - `$SKWD_CONFIG`, `$SKWD_CACHE`, `$SKWD_RUNTIME`
 - **`cfg_get <jq-expr>`** - reads config.json with tilde expansion (e.g. `cfg_get '.paths.wallpaper'`)
 - **`require_cmd` / `has_cmd`** - tool availability checks; `require_cmd` exits with an error
 - **`detect_compositor`** - reads config.json first, falls back to auto-detection

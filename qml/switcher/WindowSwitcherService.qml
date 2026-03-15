@@ -9,13 +9,14 @@ QtObject {
   required property string compositor
   required property string configPath
   required property string homeDir
+  required property string cacheDir
 
   // Window list and selection state
   property var windowList: []
   property int selectedIndex: 0
   property bool preserveIndex: false
   property int screenshotCounter: 0
-  property string thumbDir: homeDir + "/.cache/window-thumbs"
+  property string thumbDir: cacheDir + "/window-thumbs"
 
   // App config from apps.json (custom icons/names)
   property var appConfig: ({})

@@ -9,7 +9,7 @@
     "tags": "Space-separated keywords for search (e.g. \"chat voice call\". Also good for custom software that replaces the one you usually type. e.g. Vesktop -> Discord)"
   },
   "discord": {
-    "background": "~/.config/piixident/images/apps/discord.webp",
+    "background": "~/.config/skwd/images/apps/discord.webp",
     "icon": "󰙯",
     "displayName": "Totally Not Discord",
     "tags": "chat voice call kitten"

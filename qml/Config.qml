@@ -12,7 +12,9 @@ QtObject {
 
     // Directory paths
     readonly property string homeDir: Quickshell.env("HOME")
-    readonly property string configDir: homeDir + "/.config/piixident"
+    readonly property string configDir: Quickshell.env("SKWD_CONFIG")
+        || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd"
+    readonly property string installDir: Quickshell.env("SKWD_INSTALL") || configDir
 
     // Config file loader (auto-reloads on change)
     property var _configFile: FileView {
@@ -30,8 +32,10 @@ QtObject {
     }
 
 
-    readonly property string scriptsDir: _resolve(_data.paths?.scripts) || (configDir + "/scripts")
-    readonly property string cacheDir: _resolve(_data.paths?.cache) || (homeDir + "/.cache/piixident")
+    readonly property string scriptsDir: _resolve(_data.paths?.scripts) || (installDir + "/scripts")
+    readonly property string cacheDir: _resolve(_data.paths?.cache)
+        || Quickshell.env("SKWD_CACHE")
+        || (Quickshell.env("XDG_CACHE_HOME") || (homeDir + "/.cache")) + "/skwd"
     readonly property string wallpaperDir: _resolve(_data.paths?.wallpaper)
     readonly property string weDir: _resolve(_data.paths?.steamWorkshop)
     readonly property string weAssetsDir: _resolve(_data.paths?.steamWeAssets)
@@ -43,7 +47,7 @@ QtObject {
 
     // General settings (monitor, polling intervals)
     readonly property string mainMonitor: _data.monitor ?? ""
-    readonly property string ollamaUrl: Quickshell.env("PIIXIDENT_OLLAMA_URL") || (_data.ollama?.url ?? "")
+    readonly property string ollamaUrl: Quickshell.env("SKWD_OLLAMA_URL") || (_data.ollama?.url ?? "")
     readonly property string ollamaModel: _data.ollama?.model ?? ""
     readonly property int weatherPollMs: _data.intervals?.weatherPollMs ?? 0
     readonly property int wifiPollMs: _data.intervals?.wifiPollMs ?? 0
@@ -58,7 +62,7 @@ QtObject {
     // Bar widget settings and toggles
     property var _bar: _data.components?.bar ?? {}
     readonly property bool barEnabled: _bar.enabled !== false
-    readonly property string weatherCity: Quickshell.env("PIIXIDENT_WEATHER_CITY") || (_bar.weather?.city ?? "")
+    readonly property string weatherCity: Quickshell.env("SKWD_WEATHER_CITY") || (_bar.weather?.city ?? "")
     readonly property bool weatherEnabled: _bar.weather !== undefined && _bar.weather !== false
     readonly property string wifiInterface: _bar.wifi?.interface ?? ""
     readonly property bool wifiEnabled: _bar.wifi !== undefined && _bar.wifi !== false

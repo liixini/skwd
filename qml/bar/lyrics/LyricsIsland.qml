@@ -18,7 +18,7 @@ Item {
 
   LyricsIslandService {
     id: service
-    configDir: Config.configDir
+    installDir: Config.installDir
     scriptsDir: Config.scriptsDir
     preferredPlayer: Config.preferredPlayer
     onClearAnimationRequested: lyricClearAnim.restart()

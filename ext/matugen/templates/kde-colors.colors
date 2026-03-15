@@ -117,8 +117,8 @@ ForegroundPositive={{colors.primary.default.red}},{{colors.primary.default.green
 ForegroundVisited={{colors.tertiary.default.red}},{{colors.tertiary.default.green}},{{colors.tertiary.default.blue}}
 
 [General]
-ColorScheme=PiixidentMatugen
-Name=PiixidentMatugen
+ColorScheme=SkwdMatugen
+Name=SkwdMatugen
 
 [KDE]
 contrast=4

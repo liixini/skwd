@@ -4,7 +4,7 @@ import QtQuick
 QtObject {
   id: service
 
-  required property string configDir
+  required property string installDir
   required property string scriptsDir
   required property string preferredPlayer
 
@@ -74,7 +74,7 @@ QtObject {
   // Cava audio visualizer process
   property var _cavaProcess: Process {
     id: cavaProcess
-    command: ["cava", "-p", service.configDir + "/ext/cava/cava-bar.conf"]
+    command: ["cava", "-p", service.installDir + "/ext/cava/cava-bar.conf"]
     running: true
     stdout: SplitParser {
       onRead: data => {

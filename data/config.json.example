@@ -1,9 +1,9 @@
 {
-  "_comment": "Main configuration for piixident. Copy this file to config.json and edit to match your setup.",
+  "_comment": "Main configuration for skwd. Copy this file to config.json and edit to match your setup.",
   "compositor": "niri",
   "paths": {
-    "scripts": "~/.config/piixident/scripts",
-    "cache": "~/.cache/piixident",
+    "scripts": "~/.config/skwd/scripts",
+    "cache": "~/.cache/skwd",
     "wallpaper": "~/wallpaper",
     "steamWorkshop": "~/.local/share/Steam/steamapps/workshop/content/431960",
     "steamWeAssets": "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets",
@@ -16,7 +16,18 @@
   },
   "matugen": {
     "schemeType": "scheme-fidelity",
-    "kdeColorScheme": "PiixidentMatugen"
+    "kdeColorScheme": "SkwdMatugen"
+  },
+  "integrations": {
+    "kitty": "~/.config/kitty/skwd-theme.conf",
+    "kde": "~/.local/share/color-schemes/SkwdMatugen.colors",
+    "vscode": "~/.vscode/extensions/matugen.matugen-theme-1.0.0/themes/matugen-color-theme.json",
+    "vesktop": "~/.config/vesktop/themes/kitty-match.css",
+    "zen": "",
+    "spicetify": "~/.config/spicetify/Themes/Matugen/color.ini",
+    "spicetifyCss": "~/.config/spicetify/Themes/Matugen/user.css",
+    "yazi": "~/.config/yazi/theme.toml",
+    "qt6ct": "~/.config/qt6ct/colors/matugen.conf"
   },
   "intervals": {
     "weatherPollMs": 600000,

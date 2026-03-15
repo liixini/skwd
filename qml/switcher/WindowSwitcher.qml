@@ -26,6 +26,7 @@ Scope {
     compositor: Config.compositor
     configPath: Config.configDir + "/data/apps.json"
     homeDir: Config.homeDir
+    cacheDir: Config.cacheDir
     onModelBuilt: idx => {
       sliceListView.currentIndex = idx
     }

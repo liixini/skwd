@@ -4,10 +4,10 @@
 . "$(dirname "$0")/lib.sh"
 
 # Skip if not running niri
-[ "$PIIXIDENT_COMPOSITOR" != "niri" ] && exit 0
+[ "$SKWD_COMPOSITOR" != "niri" ] && exit 0
 
 # Read cached primary color
-color_file="$PIIXIDENT_CACHE/niri-primary-color"
+color_file="$SKWD_CACHE/niri-primary-color"
 niri_config="$HOME/.config/niri/config.kdl"
 
 if [ ! -f "$color_file" ]; then

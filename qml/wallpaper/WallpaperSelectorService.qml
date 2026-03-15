@@ -368,9 +368,10 @@ QtObject {
   property var _ollamaProgressCheck: Process {
     id: ollamaProgressCheck
     command: ["bash", "-c", `
-      thumbs=$(( $(find ~/.cache/piixident/wallpaper/thumbs -name '*.jpg' 2>/dev/null | wc -l) + $(find ~/.cache/piixident/wallpaper/we-thumbs -name '*.jpg' 2>/dev/null | wc -l) + $(find ~/.cache/piixident/wallpaper/video-thumbs -name '*.jpg' 2>/dev/null | wc -l) ))
-      tags=$(jq 'keys | length' ~/.cache/piixident/wallpaper/tags.json 2>/dev/null || echo 0)
-      colors=$(jq 'keys | length' ~/.cache/piixident/wallpaper/colors.json 2>/dev/null || echo 0)
+      cache="` + service.cacheBaseDir + `/wallpaper"
+      thumbs=$(( $(find "$cache/thumbs" -name '*.jpg' 2>/dev/null | wc -l) + $(find "$cache/we-thumbs" -name '*.jpg' 2>/dev/null | wc -l) + $(find "$cache/video-thumbs" -name '*.jpg' 2>/dev/null | wc -l) ))
+      tags=$(jq 'keys | length' "$cache/tags.json" 2>/dev/null || echo 0)
+      colors=$(jq 'keys | length' "$cache/colors.json" 2>/dev/null || echo 0)
       echo "$thumbs:$tags:$colors"
     `]
     stdout: SplitParser {
