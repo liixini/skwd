@@ -9,26 +9,18 @@ QtObject {
 
     // Color file watcher (hot-reloads on wallpaper change)
     property string colorFilePath: Config.cacheDir + "/colors.json"
-    property string lastRawText: ""
-
 
     property var colorFileView: FileView {
         path: colors.colorFilePath
         watchChanges: true
         preload: true
-        onFileChanged: {
-            colorFileView.reload()
-            colors._applyColors()
-        }
+        onFileChanged: reload()
+        onLoaded: colors._applyColors()
     }
-
-    // JSON parsing and color assignment
-    Component.onCompleted: _applyColors()
 
     function _applyColors() {
         var text = colorFileView.text().trim()
-        if (!text || text === lastRawText) return
-        lastRawText = text
+        if (!text) return
         try {
             var d = JSON.parse(text)
             colors.primary = d.primary ?? "#ffb4ab"
