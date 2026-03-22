@@ -90,7 +90,8 @@ Column {
       Connections {
         target: root.panel
         function onAppsDataChanged() {
-          appCard.appEntry = root.panel.appsData[appCard.appKey] ?? {}
+          var obj = root.panel.appsData[appCard.appKey]
+          appCard.appEntry = obj ? Object.assign({}, obj) : {}
         }
       }
       property bool _matchesSearch: {
@@ -287,8 +288,8 @@ Column {
                 Text {
                   id: pickIconLabel
                   anchors.centerIn: parent
-                  text: "󰋣 PICK"
-                  font.family: Style.fontFamilyNerdIcons
+                  text: "PICK"
+                  font.family: Style.fontFamily
                   font.pixelSize: 11
                   color: root.colors ? root.colors.tertiary : "#8bceff"
                 }
@@ -411,8 +412,8 @@ Column {
                   Text {
                     id: browseBtnLabel
                     anchors.centerIn: parent
-                    text: "󰉋 BROWSE"
-                    font.family: Style.fontFamilyNerdIcons
+                    text: "BROWSE"
+                    font.family: Style.fontFamily
                     font.pixelSize: 11
                     color: root.colors ? root.colors.tertiary : "#8bceff"
                   }
@@ -468,8 +469,8 @@ Column {
                   visible: !bgPreviewImage.visible
 
                   Text {
-                    text: "󰇷"
-                    font.family: Style.fontFamilyNerdIcons
+                    text: "󰕒"
+                    font.family: Style.fontFamilyIcons
                     font.pixelSize: 22
                     color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
                     anchors.horizontalCenter: parent.horizontalCenter
