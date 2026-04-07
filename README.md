@@ -1,7 +1,9 @@
 # Skwd - A skewed take on shells
 
+### Work in progress! I have a major refactoring underway that vastly improves the functionality and removes all of the python and most of the scripts.
+
 ![Desktop view](screenshots/image.png)
-![Wallpaper switcher](screenshots/image-1.png)
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/3cf58a9b-e8f5-4bb8-8e36-ba974e08ed9d" />
 ![Window switcher](screenshots/image-2.png)
 ![App launcher](screenshots/image-4.png)
 
