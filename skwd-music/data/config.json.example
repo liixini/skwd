@@ -1,0 +1,8 @@
+{
+    "music": {
+        "preferredPlayer": "spotify",
+        "librespotDevice": "skwd-music",
+        "librespotBackend": "pulseaudio",
+        "librespotBitrate": 320
+    }
+}

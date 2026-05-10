@@ -1,0 +1,4 @@
+#!/bin/sh
+export SKWD_INSTALL=/usr/share/skwd
+export SKWD_MUSIC_INSTALL=/usr/share/skwd/skwd-music
+exec quickshell -p /usr/share/skwd/skwd-music/shell.qml "$@"

@@ -1,0 +1,5 @@
+singleton DaemonClient 1.0 DaemonClient.qml
+LibrespotService 1.0 LibrespotService.qml
+MprisService 1.0 MprisService.qml
+SpotifyAuth 1.0 SpotifyAuth.qml
+SpotifyApi 1.0 SpotifyApi.qml

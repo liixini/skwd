@@ -1,0 +1,30 @@
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+*.bak
+
+.DS_Store
+Thumbs.db
+
+build/
+dist/
+
+# nix build artifacts
+result
+result-*
+
+# stale dev artifacts
+nohup.out
+**/nohup.out
+
+# makepkg build artifacts
+packaging/aur/pkg/
+packaging/aur/src/
+packaging/aur/skwd/
+packaging/aur/*.pkg.tar.zst
+
+CLAUDE.md

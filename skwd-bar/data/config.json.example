@@ -1,0 +1,34 @@
+{
+  "compositor": "niri",
+  "paths": {
+    "cache": "~/.cache/skwd"
+  },
+  "monitor": "DP-1",
+  "intervals": {
+    "weatherPollMs": 600000,
+    "wifiPollMs": 10000
+  },
+  "components": {
+    "bar": {
+      "enabled": true,
+      "weather": {
+        "enabled": true,
+        "city": "YOUR_CITY"
+      },
+      "wifi": {
+        "enabled": true,
+        "interface": "wlan0"
+      },
+      "bluetooth": true,
+      "volume": true,
+      "calendar": true,
+      "music": {
+        "enabled": true,
+        "preferredPlayer": "spotify",
+        "visualizer": "wave",
+        "visualizerTop": true,
+        "visualizerBottom": true
+      }
+    }
+  }
+}

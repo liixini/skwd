@@ -1,0 +1,4 @@
+#!/bin/sh
+export SKWD_INSTALL=/usr/share/skwd
+export SKWD_NOTIFICATION_INSTALL=/usr/share/skwd/skwd-notification
+exec quickshell -p /usr/share/skwd/skwd-notification/shell.qml "$@"

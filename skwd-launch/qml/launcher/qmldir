@@ -1,0 +1,6 @@
+AppLauncher 1.0 AppLauncher.qml
+AppLauncherService 1.0 AppLauncherService.qml
+SliceDelegate 1.0 SliceDelegate.qml
+HexDelegate 1.0 HexDelegate.qml
+MosaicView 1.0 MosaicView.qml
+MosaicCell 1.0 MosaicCell.qml

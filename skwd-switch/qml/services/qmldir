@@ -1,0 +1,2 @@
+singleton WmService 1.0 WmService.qml
+singleton IpcSwitchService 1.0 IpcSwitchService.qml

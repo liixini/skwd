@@ -1,0 +1,7 @@
+singleton SystemStatsService 1.0 SystemStatsService.qml
+singleton WmService 1.0 WmService.qml
+singleton WifiService 1.0 WifiService.qml
+singleton IpcService 1.0 IpcService.qml
+singleton WeatherService 1.0 WeatherService.qml
+singleton LyricsService 1.0 LyricsService.qml
+singleton DaemonClient 1.0 DaemonClient.qml

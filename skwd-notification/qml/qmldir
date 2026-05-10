@@ -1,0 +1,4 @@
+singleton Config 1.0 Config.qml
+singleton Style 1.0 Style.qml
+Colors 1.0 Colors.qml
+NotificationPopup 1.0 NotificationPopup.qml

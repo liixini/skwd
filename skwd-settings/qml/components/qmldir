@@ -1,0 +1,8 @@
+SectionTitle 1.0 SectionTitle.qml
+FilterButton 1.0 FilterButton.qml
+SettingsInput 1.0 SettingsInput.qml
+SettingsSlider 1.0 SettingsSlider.qml
+SettingsTextInput 1.0 SettingsTextInput.qml
+SettingsToggle 1.0 SettingsToggle.qml
+SettingsDropdown 1.0 SettingsDropdown.qml
+AppEditorRow 1.0 AppEditorRow.qml
