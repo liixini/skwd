@@ -76,5 +76,6 @@ package() {
   cp -a skwd-switch/data      "$_sharedir/skwd-switch/data"
   install -Dm755 packaging/wrappers/skwd-switch "$pkgdir/usr/bin/skwd-switch"
 
+  install -Dm644 data/config.json.example "$_sharedir/data/config.json.example"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

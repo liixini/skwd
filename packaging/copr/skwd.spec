@@ -81,6 +81,7 @@ cp -a skwd-switch/qml       %{buildroot}%{_datadir}/%{appname}/skwd-switch/qml
 cp -a skwd-switch/data      %{buildroot}%{_datadir}/%{appname}/skwd-switch/data
 install -Dpm 0755 packaging/wrappers/skwd-switch %{buildroot}%{_bindir}/skwd-switch
 
+install -Dpm 0644 data/config.json.example %{buildroot}%{_datadir}/%{appname}/data/config.json.example
 install -Dpm 0644 LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 
 %post

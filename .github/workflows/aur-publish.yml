@@ -1,0 +1,50 @@
+name: Update AUR package
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  aur-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute pkgver
+        id: pkgver
+        run: |
+          count=$(git rev-list --count HEAD)
+          hash=$(git rev-parse --short HEAD)
+          echo "version=r${count}.${hash}" >> "$GITHUB_OUTPUT"
+
+      - name: Update packaging files
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.pkgver.outputs.version }}/" packaging/aur/PKGBUILD
+          sed -i "s/\tpkgver = .*/\tpkgver = ${{ steps.pkgver.outputs.version }}/" packaging/aur/.SRCINFO
+
+      - name: Push to AUR
+        env:
+          AUR_SSH_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          echo "Host aur.archlinux.org" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/aur" >> ~/.ssh/config
+          echo "  User aur" >> ~/.ssh/config
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
+
+          git clone ssh://aur@aur.archlinux.org/skwd.git /tmp/aur-skwd
+          cp packaging/aur/PKGBUILD /tmp/aur-skwd/
+          cp packaging/aur/.SRCINFO /tmp/aur-skwd/
+          cp packaging/aur/skwd.install /tmp/aur-skwd/
+
+          cd /tmp/aur-skwd
+          git config user.name "liixini"
+          git config user.email "liixini@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "bump pkgver to ${{ steps.pkgver.outputs.version }}"
+          git push

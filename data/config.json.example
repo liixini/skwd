@@ -1,0 +1,126 @@
+{
+  "_comment": "skwd shell suite config. Place at ~/.config/skwd/data/config.json (or set SKWD_CONFIG env var). Read by skwd-bar, skwd-launch, skwd-music, skwd-notification, skwd-settings and skwd-switch. The skwd-daemon also reads notifications from this file.",
+
+  "compositor": "niri",
+  "monitor": "DP-1",
+  "terminal": "kitty",
+  "uiScale": 1.0,
+
+  "paths": {
+    "cache": "~/.cache/skwd",
+    "splash": "~/appsplash"
+  },
+
+  "intervals": {
+    "weatherPollMs": 600000,
+    "wifiPollMs": 10000
+  },
+
+  "components": {
+    "bar": {
+      "enabled": true,
+      "calendar": true,
+      "volume": true,
+      "bluetooth": true,
+      "weather": {
+        "enabled": true,
+        "cities": ["YOUR_CITY"],
+        "defaultCity": "YOUR_CITY"
+      },
+      "wifi": {
+        "enabled": true,
+        "interface": "wlan0"
+      },
+      "music": {
+        "enabled": true,
+        "preferredPlayer": "spotify",
+        "visualizer": "wave",
+        "visualizerTop": true,
+        "visualizerBottom": true,
+        "autohide": true,
+        "showMeta": true,
+        "showLyrics": true,
+        "librespotDevice": "skwd-music",
+        "librespotBackend": "pulseaudio",
+        "librespotBitrate": 320,
+        "spotifyClientId": "",
+        "viz": {
+          "aurora": { "minAmp": 0.22, "layerCount": 4 },
+          "auroraResponsive": { "pumpExp": 0.45, "pumpScale": 1.4, "attack": 0.45, "decay": 0.10 },
+          "pulse": { "pillWidth": 3 },
+          "vu": { "peakDecay": 1.6 },
+          "spectrogram": { "cols": 80 },
+          "stardust": { "count": 60 },
+          "comet": { "trailLen": 24 },
+          "ripple": { "threshold": 1.5, "maxAge": 36 }
+        }
+      }
+    },
+    "appLauncher": {
+      "displayMode": "slice",
+      "sliceWidth": 135,
+      "expandedWidth": 924,
+      "sliceHeight": 520,
+      "skewOffset": 35,
+      "sliceSpacing": -22,
+      "visibleCount": 12,
+      "roundCorners": false,
+      "cornerRadius": 16,
+      "hexRadius": 140,
+      "hexRows": 3,
+      "hexCols": 7,
+      "hexScrollStep": 1,
+      "hexArc": true,
+      "hexArcIntensity": 1.2,
+      "gridColumns": 6,
+      "gridRows": 3,
+      "gridThumbWidth": 300,
+      "gridThumbHeight": 169,
+      "mosaicCells": 48,
+      "mosaicSeed": 7,
+      "mosaicRelaxation": 2,
+      "mosaicWidth": 1500,
+      "mosaicHeight": 800,
+      "customPresets": {}
+    }
+  },
+
+  "switcher": {
+    "displayMode": "slice",
+    "sliceWidth": 135,
+    "sliceExpandedWidth": 924,
+    "sliceHeight": 520,
+    "sliceSkewOffset": 35,
+    "sliceSpacing": -22,
+    "sliceVisibleCount": 12,
+    "cardWidth": 1600,
+    "cardHeightPad": 40,
+    "animFadeIn": 400,
+    "dimOpacity": 0.5,
+    "gridColumns": 5,
+    "gridRows": 4,
+    "gridCellWidth": 240,
+    "gridCellHeight": 170,
+    "gridSpacing": 14,
+    "gridIconSize": 64,
+    "compactCellWidth": 92,
+    "compactCellHeight": 110,
+    "compactSpacing": 8,
+    "compactIconSize": 56,
+    "compactCardPad": 28,
+    "wheelOuterRadius": 320,
+    "wheelInnerRadius": 90,
+    "wheelIconSize": 80,
+    "wheelGap": 4,
+    "wheelStartAngle": -90.0
+  },
+
+  "notifications": {
+    "expireMs": 5000,
+    "popupMaxVisible": 4,
+    "popupWidth": 320,
+    "popupRightMargin": 16,
+    "popupTopMargin": 12,
+    "builtIn": "auto"
+  }
+}

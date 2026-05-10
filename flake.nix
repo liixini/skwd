@@ -133,6 +133,7 @@
                 $out/lib/systemd/user/skwd-daemon.service \
                 --replace-fail "${daemon}/bin/skwd-daemon" "$out/bin/skwd-daemon"
 
+              install -Dm644 data/config.json.example $out/share/skwd/data/config.json.example
               install -Dm644 LICENSE $out/share/licenses/skwd/LICENSE
 
               mkdir -p $out/share/fonts
