@@ -70,7 +70,6 @@
               mkdir -p $out/share/skwd/skwd-launch
               cp -a skwd-launch/shell.qml $out/share/skwd/skwd-launch/shell.qml
               cp -a skwd-launch/qml       $out/share/skwd/skwd-launch/qml
-              cp -a skwd-launch/data      $out/share/skwd/skwd-launch/data
               makeWrapper ${quickshellWithModules}/bin/quickshell $out/bin/skwd-launch \
                 --prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps} \
                 --set SKWD_INSTALL "$out/share/skwd" \
@@ -112,7 +111,6 @@
               mkdir -p $out/share/skwd/skwd-switch
               cp -a skwd-switch/shell.qml $out/share/skwd/skwd-switch/shell.qml
               cp -a skwd-switch/qml       $out/share/skwd/skwd-switch/qml
-              cp -a skwd-switch/data      $out/share/skwd/skwd-switch/data
               makeWrapper ${quickshellWithModules}/bin/quickshell $out/bin/skwd-switch \
                 --prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps} \
                 --set SKWD_INSTALL "$out/share/skwd" \

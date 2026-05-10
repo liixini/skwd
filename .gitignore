@@ -27,4 +27,6 @@ packaging/aur/src/
 packaging/aur/skwd/
 packaging/aur/*.pkg.tar.zst
 
+aur-skwd/
+
 CLAUDE.md

@@ -52,7 +52,6 @@ install -Dpm 0755 packaging/wrappers/skwd-bar %{buildroot}%{_bindir}/skwd-bar
 install -dm 0755 %{buildroot}%{_datadir}/%{appname}/skwd-launch
 cp -a skwd-launch/shell.qml %{buildroot}%{_datadir}/%{appname}/skwd-launch/shell.qml
 cp -a skwd-launch/qml       %{buildroot}%{_datadir}/%{appname}/skwd-launch/qml
-cp -a skwd-launch/data      %{buildroot}%{_datadir}/%{appname}/skwd-launch/data
 install -Dpm 0755 packaging/wrappers/skwd-launch %{buildroot}%{_bindir}/skwd-launch
 
 # skwd-music
@@ -78,7 +77,6 @@ install -Dpm 0755 packaging/wrappers/skwd-settings %{buildroot}%{_bindir}/skwd-s
 install -dm 0755 %{buildroot}%{_datadir}/%{appname}/skwd-switch
 cp -a skwd-switch/shell.qml %{buildroot}%{_datadir}/%{appname}/skwd-switch/shell.qml
 cp -a skwd-switch/qml       %{buildroot}%{_datadir}/%{appname}/skwd-switch/qml
-cp -a skwd-switch/data      %{buildroot}%{_datadir}/%{appname}/skwd-switch/data
 install -Dpm 0755 packaging/wrappers/skwd-switch %{buildroot}%{_bindir}/skwd-switch
 
 install -Dpm 0644 data/config.json.example %{buildroot}%{_datadir}/%{appname}/data/config.json.example
