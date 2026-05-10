@@ -25,6 +25,7 @@ Requires:       google-roboto-fonts
 Requires:       google-roboto-condensed-fonts
 Requires:       google-roboto-mono-fonts
 Requires:       skwd-fonts
+Requires:       cava
 
 %description
 A Quickshell-based desktop shell suite consisting of skwd-bar, skwd-launch,

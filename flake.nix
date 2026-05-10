@@ -35,6 +35,7 @@
             curl
             file
             iwd
+            cava
           ];
 
           daemonDeps = runtimeDeps ++ [ quickshellWithModules ];

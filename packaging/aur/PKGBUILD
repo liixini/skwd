@@ -17,6 +17,7 @@ depends=(
   'file'
   'inotify-tools'
   'iwd'
+  'cava'
   'ttf-nerd-fonts-symbols'
   'ttf-roboto'
 )
