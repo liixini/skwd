@@ -17,6 +17,9 @@ Skwd-setttings has a modules section where all logic for non-used components is 
 
 `yay -S skwd`
 
+> [!IMPORTANT]
+> Note that skwd is a collection of Quickshell widgets held together by the Rust daemon skwd-daemon. So if you're updating only skwd, you want to update both skwd and skwd-daemon, e.g.
+> `yay -S skwd skwd-daemon`
 
 # Commands
 ```
