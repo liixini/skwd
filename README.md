@@ -41,6 +41,9 @@ skwd switch close
 // Launcher
 skwd launcher toggle
 
+// Power menu (shutdown, reboot... etc)
+skwd power toggle
+
 // Settings panel for like, everything. Very WIP and rough around the edges.
 skwd-settings
 ```
