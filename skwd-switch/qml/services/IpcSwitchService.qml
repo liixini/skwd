@@ -27,9 +27,7 @@ QtObject {
 
     property var _reader: Process {
         id: reader
-        command: ["sh", "-c",
-            "trap 'exit 0' TERM HUP INT; " +
-            "while true; do cat " + JSON.stringify(service.fifoPath) + "; done"]
+        command: ["cat", service.fifoPath]
         onExited: _restartTimer.start()
         stdout: SplitParser {
             onRead: message => service._dispatch(message.trim())
@@ -38,7 +36,7 @@ QtObject {
 
     property var _restartTimer: Timer {
         id: restartTimer
-        interval: 1000
+        interval: 100
         onTriggered: reader.running = true
     }
 

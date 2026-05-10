@@ -80,6 +80,12 @@ cp -a skwd-switch/shell.qml %{buildroot}%{_datadir}/%{appname}/skwd-switch/shell
 cp -a skwd-switch/qml       %{buildroot}%{_datadir}/%{appname}/skwd-switch/qml
 install -Dpm 0755 packaging/wrappers/skwd-switch %{buildroot}%{_bindir}/skwd-switch
 
+# skwd-power
+install -dm 0755 %{buildroot}%{_datadir}/%{appname}/skwd-power
+cp -a skwd-power/shell.qml %{buildroot}%{_datadir}/%{appname}/skwd-power/shell.qml
+cp -a skwd-power/qml       %{buildroot}%{_datadir}/%{appname}/skwd-power/qml
+install -Dpm 0755 packaging/wrappers/skwd-power %{buildroot}%{_bindir}/skwd-power
+
 install -Dpm 0644 data/config.json.example %{buildroot}%{_datadir}/%{appname}/data/config.json.example
 install -Dpm 0644 LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 
@@ -88,8 +94,8 @@ echo "skwd installed."
 echo "Make sure skwd-daemon is running:"
 echo "  systemctl --user enable --now skwd-daemon.service"
 echo "Available shells (launch via your compositor's spawn keybind):"
-echo "  skwd-bar, skwd-launch, skwd-music,"
-echo "  skwd-notification, skwd-settings, skwd-switch"
+echo "  skwd-bar, skwd-launch, skwd-music, skwd-notification,"
+echo "  skwd-power, skwd-settings, skwd-switch"
 
 %files
 %license LICENSE
@@ -98,5 +104,6 @@ echo "  skwd-notification, skwd-settings, skwd-switch"
 %{_bindir}/skwd-launch
 %{_bindir}/skwd-music
 %{_bindir}/skwd-notification
+%{_bindir}/skwd-power
 %{_bindir}/skwd-settings
 %{_bindir}/skwd-switch

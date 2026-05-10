@@ -118,6 +118,16 @@
                 --set SKWD_SWITCH_INSTALL "$out/share/skwd/skwd-switch" \
                 --add-flags "-p $out/share/skwd/skwd-switch/shell.qml"
 
+              # skwd-power
+              mkdir -p $out/share/skwd/skwd-power
+              cp -a skwd-power/shell.qml $out/share/skwd/skwd-power/shell.qml
+              cp -a skwd-power/qml       $out/share/skwd/skwd-power/qml
+              makeWrapper ${quickshellWithModules}/bin/quickshell $out/bin/skwd-power \
+                --prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps} \
+                --set SKWD_INSTALL "$out/share/skwd" \
+                --set SKWD_POWER_INSTALL "$out/share/skwd/skwd-power" \
+                --add-flags "-p $out/share/skwd/skwd-power/shell.qml"
+
               # daemon CLI + service unit
               makeWrapper ${daemon}/bin/skwd $out/bin/skwd \
                 --prefix PATH : ${pkgs.lib.makeBinPath daemonDeps} \

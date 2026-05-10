@@ -1,0 +1,4 @@
+#!/bin/sh
+export SKWD_INSTALL=/usr/share/skwd
+export SKWD_POWER_INSTALL=/usr/share/skwd/skwd-power
+exec quickshell -p /usr/share/skwd/skwd-power/shell.qml "$@"
