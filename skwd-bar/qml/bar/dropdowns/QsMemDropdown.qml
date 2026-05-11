@@ -28,6 +28,7 @@ Rectangle {
   height: _animatedHeight
   visible: _animatedHeight > 0
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
+  radius: Config.barStyle === "pill" ? 16 : 0
 
   onActiveChanged: {
     if (active) _targetHeight = qsmemColumn.implicitHeight + 24
@@ -35,6 +36,7 @@ Rectangle {
   }
 
   Rectangle {
+    visible: Config.barStyle !== "pill"
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right

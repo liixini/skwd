@@ -42,6 +42,7 @@ Item {
 
   Canvas {
     id: centerBg
+    visible: Config.barStyle !== "pill"
     anchors.fill: parent
     onPaint: {
       var ctx = getContext("2d")
@@ -910,16 +911,15 @@ Item {
     ctx.restore()
   }
 
-  function _vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, w, colors, ampScale, palette) {
+  function _vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, w, colors, ampScale) {
     var count = raw.length
     var scale = ampScale === undefined ? 1.0 : ampScale
-    var pal = palette || null
     ctx.save()
     ctx.lineCap = "round"
     ctx.lineJoin = "round"
 
-    var defFill = dir < 0 ? colors.primary : colors.surface
-    var defStroke = dir < 0 ? colors.tertiary : colors.surface
+    var fillCol = dir < 0 ? colors.primary : colors.surface
+    var strokeCol = dir < 0 ? colors.tertiary : colors.surface
     var fillBase = dir < 0 ? 0.25 : 0.88
     var fillMid  = dir < 0 ? 0.08 : 0.88
     var strokeAlpha = dir < 0 ? 0.20 : 0.50
@@ -937,9 +937,6 @@ Item {
       for (var i = 0; i < count; i++) shiftedVals.push(raw[(i + shift) % count])
       var padded = lyricsIsland._vizEdgePad(shiftedVals)
       var pStep = w / (padded.length - 1)
-
-      var fillCol = pal ? pal[L % pal.length] : defFill
-      var strokeCol = pal ? pal[L % pal.length] : defStroke
 
       ctx.beginPath()
       lyricsIsland._vizDrawWave(ctx, padded, pStep, baseY, layerAmp, dir)
@@ -1068,12 +1065,6 @@ Item {
       } else if (theme === "aurora-responsive") {
         var pumpA = Math.min(1.0, Math.pow(lyricsIsland._vizAuroraEnv, Config.vizAuroraRespPumpExp) * Config.vizAuroraRespPumpScale)
         lyricsIsland._vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, width, lyricsIsland.colors, pumpA)
-      } else if (theme === "aurora-responsive-rainbow") {
-        var car = lyricsIsland.colors
-        var pumpAr = Math.min(1.0, Math.pow(lyricsIsland._vizAuroraEnv, Config.vizAuroraRespPumpExp) * Config.vizAuroraRespPumpScale)
-        lyricsIsland._vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, width, car, pumpAr, [
-          car.primary, car.tertiary, car.secondary, car.primaryContainer, car.tertiaryContainer, car.secondaryContainer
-        ])
       } else if (theme === "blocks") {
         ctx.fillStyle = Qt.rgba(pri.r, pri.g, pri.b, 0.25)
         lyricsIsland._vizDrawBlocks(ctx, raw, baseY, maxAmp, dir, slant, width)
@@ -1156,7 +1147,7 @@ Item {
         if (theme === "spectrogram")  lyricsIsland._vizUpdateSpectrogram(display)
         if (theme === "ripple")       lyricsIsland._vizUpdateRipples(display)
         if (theme === "comet")        lyricsIsland._vizUpdateComet(display)
-        if (theme === "aurora-responsive" || theme === "aurora-responsive-rainbow") lyricsIsland._vizUpdateAuroraEnv(display)
+        if (theme === "aurora-responsive") lyricsIsland._vizUpdateAuroraEnv(display)
         audioVisualizer.requestPaint()
         audioVisualizerUp.requestPaint()
       }
@@ -1244,12 +1235,6 @@ Item {
       } else if (theme === "aurora-responsive") {
         var pumpA2 = Math.min(1.0, Math.pow(lyricsIsland._vizAuroraEnv, Config.vizAuroraRespPumpExp) * Config.vizAuroraRespPumpScale)
         lyricsIsland._vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, width, lyricsIsland.colors, pumpA2)
-      } else if (theme === "aurora-responsive-rainbow") {
-        var car2 = lyricsIsland.colors
-        var pumpAr2 = Math.min(1.0, Math.pow(lyricsIsland._vizAuroraEnv, Config.vizAuroraRespPumpExp) * Config.vizAuroraRespPumpScale)
-        lyricsIsland._vizDrawAurora(ctx, raw, baseY, maxAmp, dir, slant, width, car2, pumpAr2, [
-          car2.primary, car2.tertiary, car2.secondary, car2.primaryContainer, car2.tertiaryContainer, car2.secondaryContainer
-        ])
       } else if (theme === "blocks") {
         ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
         lyricsIsland._vizDrawBlocks(ctx, raw, baseY, maxAmp, dir, slant, width)

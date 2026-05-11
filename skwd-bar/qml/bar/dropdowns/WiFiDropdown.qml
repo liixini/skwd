@@ -34,6 +34,7 @@ Rectangle {
   height: animatedHeight
   visible: animatedHeight > 0.5
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
+  radius: Config.barStyle === "pill" ? 16 : 0
 
   property string pendingSsid: ""
   property string pendingSecurity: ""
@@ -140,6 +141,7 @@ Rectangle {
 
 
   Rectangle {
+    visible: Config.barStyle !== "pill"
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right

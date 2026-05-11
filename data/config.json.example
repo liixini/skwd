@@ -12,13 +12,16 @@
   },
 
   "intervals": {
-    "weatherPollMs": 600000,
+    "weatherPollMs": 3600000,
     "wifiPollMs": 10000
   },
 
   "components": {
     "bar": {
       "enabled": true,
+      "style": "classic",
+      "pillSideMargin": 12,
+      "pillTopMargin": 8,
       "calendar": true,
       "volume": true,
       "bluetooth": true,

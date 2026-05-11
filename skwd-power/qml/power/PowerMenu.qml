@@ -82,6 +82,8 @@ Scope {
   }
 
 
+  readonly property var _mainScreen: Quickshell.screens.find(s => s.name === powerMenuScope.mainMonitor) ?? Quickshell.screens[0]
+
   Variants {
     model: Quickshell.screens
 
@@ -89,13 +91,7 @@ Scope {
       id: powerPanel
 
       property var modelData
-      property bool isMainMonitor: {
-        if (powerMenuScope.mainMonitor && modelData.name === powerMenuScope.mainMonitor) return true
-        if (Quickshell.screens.length === 1) return true
-        if (!powerMenuScope.mainMonitor && Quickshell.screens.length > 0
-            && modelData.name === Quickshell.screens[0].name) return true
-        return false
-      }
+      property bool isMainMonitor: modelData === powerMenuScope._mainScreen || Quickshell.screens.length === 1
 
       screen: modelData
 

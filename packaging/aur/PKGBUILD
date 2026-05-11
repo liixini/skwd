@@ -83,5 +83,6 @@ package() {
   install -Dm755 packaging/wrappers/skwd-power "$pkgdir/usr/bin/skwd-power"
 
   install -Dm644 data/config.json.example "$_sharedir/data/config.json.example"
+  install -Dm644 data/mdi-icons.json      "$_sharedir/data/mdi-icons.json"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

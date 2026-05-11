@@ -14,6 +14,7 @@ QtObject {
         || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd"
     readonly property string configFilePath: configDir + "/data/config.json"
     readonly property string mdiIconsPath: configDir + "/data/mdi-icons.json"
+    readonly property string mdiIconsSystemPath: (Quickshell.env("SKWD_INSTALL") || "/usr/share/skwd") + "/data/mdi-icons.json"
 
     readonly property string wallConfigDir: Quickshell.env("SKWD_WALL_CONFIG")
         || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd-wall"
@@ -64,6 +65,9 @@ QtObject {
     property var _bar: _data.components?.bar ?? {}
     readonly property bool   barEnabled:        _bar.enabled !== false
     readonly property bool   barMouseoverEnabled: _bar.mouseoverEnabled !== false
+    readonly property string barStyle:          _bar.style ?? "classic"
+    readonly property int    barPillSideMargin: _bar.pillSideMargin ?? 12
+    readonly property int    barPillTopMargin:  _bar.pillTopMargin  ?? 8
     readonly property bool   barBrightnessEnabled: _bar.brightness !== undefined && _bar.brightness !== false && _bar.brightness?.enabled !== false
     readonly property bool   barBatteryEnabled:    _bar.battery !== false && _bar.battery?.enabled !== false
     readonly property bool   barNotificationsEnabled: _bar.notifications?.enabled === true
@@ -119,6 +123,8 @@ QtObject {
     readonly property bool   barBluetoothEnabled: _bar.bluetooth !== false
     readonly property bool   barVolumeEnabled:  _bar.volume !== false
     readonly property bool   barCalendarEnabled:_bar.calendar !== false
+    readonly property bool   barQsmemEnabled:   _bar.qsmem?.enabled !== false
+    readonly property int    barQsmemRefreshSec:_bar.qsmem?.refreshSec ?? 5
     readonly property bool   barMusicEnabled:   _bar.music !== undefined && _bar.music !== false && _bar.music?.enabled !== false
     readonly property string barMusicVisualizer:_bar.music?.visualizer ?? "wave"
     readonly property bool   barMusicVisualizerTop:    (_bar.music?.visualizerTop !== false)

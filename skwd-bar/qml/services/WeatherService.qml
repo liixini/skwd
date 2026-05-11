@@ -95,14 +95,14 @@ QtObject {
         _resetCurrentCity()
         if (enabled) {
             refresh()
-            _pollTimer.interval = pollMs > 0 ? pollMs : 600000
+            _pollTimer.interval = pollMs > 0 ? pollMs : 3600000
             _pollTimer.start()
         }
     }
     onEnabledChanged: {
         if (enabled) {
             refresh()
-            _pollTimer.interval = pollMs > 0 ? pollMs : 600000
+            _pollTimer.interval = pollMs > 0 ? pollMs : 3600000
             _pollTimer.start()
         } else {
             _pollTimer.stop()

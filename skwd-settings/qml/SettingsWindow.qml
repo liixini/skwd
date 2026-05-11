@@ -24,19 +24,13 @@ PanelWindow {
   margins { top: 0; bottom: 0; left: 0; right: 0 }
   anchors { top: true; bottom: true; left: true; right: true }
 
-  BackgroundEffect.blurRegion: Region {
-    x: 0
-    y: 0
-    width: window.width
-    height: window.height
-  }
-
   signal closeRequested()
 
   function _s(v) { return v * Config.uiScale }
 
   
   readonly property var sections: [
+    { key: "general",      label: "GENERAL",      sectionId: "general" },
     { key: "switch",       label: "SWITCH",       sectionId: "switch" },
     { key: "launch",       label: "LAUNCH",       sectionId: "launch" },
     { key: "music",        label: "MUSIC",        sectionId: "music" },
@@ -167,6 +161,7 @@ PanelWindow {
 
           sourceComponent: {
             switch (_sectionId) {
+              case "general":      return _generalComp
               case "switch":       return _switchComp
               case "launch":       return _launchComp
               case "bar":          return _barComp
@@ -194,6 +189,7 @@ PanelWindow {
           }
         }
 
+        Component { id: _generalComp;     GeneralSettings {} }
         Component { id: _switchComp;      SwitchSettings {} }
         Component { id: _launchComp;      LaunchSettings {} }
         Component { id: _barComp;         BarSettings {} }

@@ -43,8 +43,11 @@ PanelWindow {
   }
 
   property real barHeight: 32
-  property real topMargin: -1
-  property real waveformHeight: (Config.visualizerTheme === "aurora" || Config.visualizerTheme === "aurora-responsive" || Config.visualizerTheme === "aurora-responsive-rainbow") ? 28 : 14
+  property bool _pill: Config.barStyle === "pill"
+  property real _pillSideMargin: _pill ? Config.barPillSideMargin : 0
+  property real _pillTopMargin: _pill ? Config.barPillTopMargin : 0
+  property real topMargin: _pill ? _pillTopMargin : -1
+  property real waveformHeight: (Config.visualizerTheme === "aurora" || Config.visualizerTheme === "aurora-responsive") ? 28 : 14
   property real slideOffset: barVisible ? 0 : -(barHeight + topMargin)
 
 
@@ -93,7 +96,7 @@ PanelWindow {
   color: "transparent"
 
   function _dropTopMargin(prevAccumulated) {
-    return bar.slideOffset + bar.topMargin + prevAccumulated
+    return bar.slideOffset + bar.topMargin + (bar._pill ? bar.barHeight : 0) + prevAccumulated
   }
 
 
@@ -111,7 +114,8 @@ PanelWindow {
   }
 
   mask: Region {
-    width: bar.width
+    x: bar._pillSideMargin
+    width: bar.width - 2 * bar._pillSideMargin
     y: 0
     height: Math.max(1, bar.animatedBarHeight) + (bar._lyricsPlaying ? bar.waveformHeight : 0)
 
@@ -122,7 +126,7 @@ PanelWindow {
       height: bar.totalDropdownHeight
     }
     Region {
-      x: bar.width - bar.rightDropdownWidth
+      x: bar.width - bar.rightDropdownWidth - 2 * bar._pillSideMargin
       y: Math.max(1, bar.animatedBarHeight)
       width: bar.rightDropdownWidth
       height: bar.totalDropdownHeight
@@ -223,8 +227,8 @@ PanelWindow {
 
   Timer {
     id: qsmemTimer
-    interval: 5000
-    running: true
+    interval: Math.max(1, Config.qsmemRefreshSec) * 1000
+    running: Config.qsmemEnabled
     repeat: true
     triggeredOnStart: true
     onTriggered: {
@@ -282,7 +286,7 @@ PanelWindow {
       case "cpu":        return true
       case "gpu":        return true
       case "memory":     return true
-      case "qsmem":      return qsmemInfo.totalMb > 0
+      case "qsmem":      return Config.qsmemEnabled && qsmemInfo.totalMb > 0
       case "weather":    return Config.weatherEnabled && bar.weatherTemp !== "" && bar.weatherTemp !== undefined
       case "bluetooth":  return Config.bluetoothEnabled && (bluetoothInfo.batteryText !== "" || Config.barWidgetLabel("bluetooth", "") !== "")
       case "wifi":       return Config.wifiEnabled && (wifiInfo.ssid !== "" || Config.barWidgetLabel("wifi", "") !== "")
@@ -1003,7 +1007,57 @@ PanelWindow {
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.topMargin: bar.slideOffset + bar.topMargin
+    anchors.leftMargin: bar._pillSideMargin
+    anchors.rightMargin: bar._pillSideMargin
     height: bar.barHeight
+
+    Rectangle {
+      id: pillShadow
+      visible: bar._pill
+      anchors.fill: pillBg
+      anchors.topMargin: 4
+      anchors.leftMargin: -2
+      anchors.rightMargin: -2
+      radius: (height) / 2
+      color: Qt.rgba(0, 0, 0, 0.18)
+      z: -3
+    }
+
+    Rectangle {
+      id: pillBg
+      visible: bar._pill
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: bar.barHeight
+      radius: height / 2
+      color: Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+      z: -2
+    }
+
+    Rectangle {
+      id: pillBridgeLeft
+      visible: bar._pill && bar.leftDropdownHeight > 0
+      anchors.top: pillBg.bottom
+      anchors.left: parent.left
+      width: bar.leftDropdownWidth
+      height: 16
+      color: pillBg.color
+      z: -1
+      Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    }
+
+    Rectangle {
+      id: pillBridgeRight
+      visible: bar._pill && bar.rightDropdownHeight > 0
+      anchors.top: pillBg.bottom
+      anchors.right: parent.right
+      width: bar.rightDropdownWidth
+      height: 16
+      color: pillBg.color
+      z: -1
+      Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    }
 
     Row {
       id: leftMeasureRow
@@ -1091,6 +1145,7 @@ PanelWindow {
 
       Canvas {
         id: leftBg
+        visible: !bar._pill
         anchors.fill: parent
         onPaint: {
           var ctx = getContext("2d")
@@ -1115,7 +1170,7 @@ PanelWindow {
       Row {
         id: leftContent
         anchors.left: parent.left
-        anchors.leftMargin: 12
+        anchors.leftMargin: bar._pill ? bar.barHeight / 2 + 4 : 12
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
 
@@ -1163,6 +1218,7 @@ PanelWindow {
 
       Canvas {
         id: rightBg
+        visible: !bar._pill
         anchors.fill: parent
         onPaint: {
           var ctx = getContext("2d")
@@ -1187,7 +1243,7 @@ PanelWindow {
       Row {
         id: rightContent
         anchors.right: parent.right
-        anchors.rightMargin: 12
+        anchors.rightMargin: bar._pill ? bar.barHeight / 2 + 4 : 12
         anchors.verticalCenter: parent.verticalCenter
         spacing: 14
 
@@ -1215,7 +1271,7 @@ PanelWindow {
     id: wifiDropdown
     readonly property string sideOf: bar._widgetSide("wifi")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(0)
@@ -1230,7 +1286,7 @@ PanelWindow {
     id: volumeDropdown
     readonly property string sideOf: bar._widgetSide("volume")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH)
@@ -1243,7 +1299,7 @@ PanelWindow {
     id: calendarDropdown
     readonly property string sideOf: bar._widgetSide("clock")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH)
@@ -1257,7 +1313,7 @@ PanelWindow {
     id: bluetoothDropdown
     readonly property string sideOf: bar._widgetSide("bluetooth")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH)
@@ -1271,7 +1327,7 @@ PanelWindow {
     id: weatherDropdown
     readonly property string sideOf: bar._widgetSide("weather")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH)
@@ -1286,7 +1342,7 @@ PanelWindow {
     id: brightnessDropdown
     readonly property string sideOf: bar._widgetSide("brightness")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH)
@@ -1308,7 +1364,7 @@ PanelWindow {
     id: notificationsDropdown
     readonly property string sideOf: bar._widgetSide("notifications")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH + bar._brightnessH)
@@ -1324,7 +1380,7 @@ PanelWindow {
     id: qsmemDropdown
     readonly property string sideOf: bar._widgetSide("qsmem")
     side: sideOf
-    x: sideOf === "left" ? 0 : bar.width - width
+    x: sideOf === "left" ? bar._pillSideMargin : bar.width - bar._pillSideMargin - width
     anchors.top: parent.top
     width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
     anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH + bar._brightnessH + bar._notifsH)

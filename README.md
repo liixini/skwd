@@ -25,28 +25,37 @@ Skwd-setttings has a modules section where all logic for non-used components is 
 > `yay -S skwd skwd-daemon`
 
 # Commands
+
+All commands go through `skwd-daemon` over its unix socket. Every panel-style namespace (`bar`, `launcher`, `settings`, `power`) supports `toggle`, `show` and `hide`; only the most common form is shown below.
+
 ```
 // Skwd-wall, github.com/liixini/skwd-wall
 skwd wall toggle
+skwd wall apply '{"name":"sunset.jpg"}'    // set wallpaper by name
 
-//Skwd-bar, the top bar. exec on launch for "bar always visible". Run command to quit or start the bar.
-skwd bar toggle
-
-// Traditional alt-tab switcher with various modes, I like wheel. Release on selection to select, run close to kill currently selected app.
-skwd switch next
-skwd switch prev
-skwd switch confirm
-// Cancel without selecting
-skwd switch cancel
-// Kill selected app
-skwd switch close
+// Skwd-bar, the top bar. Exec on session start for "always visible".
+skwd bar toggle                            // also: show, hide
 
 // Launcher
-skwd launcher toggle
+skwd launcher toggle                       // also: show, hide
 
-// Power menu (shutdown, reboot... etc)
-skwd power toggle
+// Settings panel. Same UI whether triggered via daemon or via the standalone wrapper.
+skwd settings toggle                       // also: show, hide
+skwd-settings                              // standalone wrapper (own quickshell process)
 
-// Settings panel for like, everything. Very WIP and rough around the edges.
-skwd-settings
+// Power menu (lock, logout, reboot, poweroff, ...).
+skwd power toggle                          // also: show, hide
+
+// Alt-tab style window switcher. Hold the bind, tap next/prev, release to confirm.
+skwd switch open                           // open without selecting
+skwd switch next
+skwd switch prev
+skwd switch confirm                        // pick highlighted window
+skwd switch cancel                         // dismiss without selecting
+skwd switch close                          // kill highlighted window
+
+// Misc
+skwd status                                // daemon version + current wallpaper
+skwd gen-icons                             // regenerate the MDI icon cache (run if the icon picker is empty)
+skwd optimize-videos [DIR_OR_FILE...]      // batch re-encode video wallpapers
 ```

@@ -44,10 +44,14 @@ QtObject {
     readonly property int wifiPollMs: _data.intervals?.wifiPollMs ?? 0
     readonly property bool devMode: _data.dev === true
 
-    
+
     property var _bar: _data.components?.bar ?? {}
     readonly property bool barEnabled: _bar.enabled !== false
     readonly property bool mouseoverEnabled: _bar.mouseoverEnabled !== false
+
+    readonly property string barStyle: _bar.style ?? "classic"
+    readonly property int    barPillSideMargin: _bar.pillSideMargin ?? 12
+    readonly property int    barPillTopMargin:  _bar.pillTopMargin  ?? 8
 
     readonly property bool brightnessEnabled: _bar.brightness !== undefined && _bar.brightness !== false && _bar.brightness?.enabled !== false
     readonly property bool batteryEnabled:    _bar.battery !== false && _bar.battery?.enabled !== false
@@ -89,6 +93,8 @@ QtObject {
     readonly property bool bluetoothEnabled: _bar.bluetooth !== false
     readonly property bool volumeEnabled: _bar.volume !== false
     readonly property bool calendarEnabled: _bar.calendar !== false
+    readonly property bool qsmemEnabled: _bar.qsmem?.enabled !== false
+    readonly property int  qsmemRefreshSec: _bar.qsmem?.refreshSec ?? 5
     readonly property bool musicEnabled: _bar.music !== undefined && _bar.music !== false && _bar.music?.enabled !== false
     readonly property string preferredPlayer: _bar.music?.preferredPlayer ?? "spotify"
     readonly property string visualizerTheme: _bar.music?.visualizer ?? "wave"

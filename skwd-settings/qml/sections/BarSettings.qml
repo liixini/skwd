@@ -16,6 +16,7 @@ Item {
     { key: "wifi",          label: "WIFI" },
     { key: "battery",       label: "BATTERY" },
     { key: "notifications", label: "NOTIFICATIONS" },
+    { key: "qsmem",         label: "SKWD MEMORY" },
     { key: "music",         label: "MUSIC" }
   ]
 
@@ -130,6 +131,7 @@ Item {
       SettingsToggle { colors: root.colors; label: "Brightness widget";  checked: Config.barBrightnessEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.brightness.enabled", v) } }
       SettingsToggle { colors: root.colors; label: "Battery widget";     checked: Config.barBatteryEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.battery.enabled", v) } }
       SettingsToggle { colors: root.colors; label: "Notification widget";  checked: Config.barNotificationsEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.notifications.enabled", v) } }
+      SettingsToggle { colors: root.colors; label: "Skwd memory widget";   checked: Config.barQsmemEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.qsmem.enabled", v) } }
       SettingsToggle { colors: root.colors; label: "Mouseover reveal";   checked: Config.barMouseoverEnabled; onToggle: function(v) { root._save("mouseoverEnabled", v) } }
     }
 
@@ -139,6 +141,33 @@ Item {
       visible: root.activeCategory === "layout"
       width: parent.width
       spacing: 8 * Config.uiScale
+
+      Text {
+        text: "STYLE"
+        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      }
+
+      SettingsDropdown {
+        colors: root.colors
+        label: "Bar style"
+        value: Config.barStyle
+        model: [
+          { mode: "classic", label: "Parallelogram - split parallelograms at the edges" },
+          { mode: "pill",    label: "Floating pill - one rounded bar" }
+        ]
+        onSelect: function(v) { SettingsService.setPath("components.bar.style", v) }
+      }
+
+      Column {
+        visible: Config.barStyle === "pill"
+        width: parent.width
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Pill side margin (px)"; description: "Space between the pill and the screen edges. Range: 0 - 64."; value: Config.barPillSideMargin; min: 0; max: 64; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.pillSideMargin", v) } }
+        SettingsInput { colors: root.colors; label: "Pill top margin (px)";  description: "Space between the pill and the top of the screen. Range: 0 - 32."; value: Config.barPillTopMargin;  min: 0; max: 32; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.pillTopMargin", v) } }
+      }
+
+      Item { width: 1; height: 4 * Config.uiScale }
 
       Row {
         width: parent.width
@@ -940,6 +969,28 @@ Item {
 
 
     Column {
+      visible: root.activeCategory === "qsmem"
+      width: parent.width
+      spacing: 8 * Config.uiScale
+
+      Text {
+        text: "SKWD MEMORY WIDGET"
+        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      }
+
+      SettingsInput {
+        colors: root.colors
+        label: "Refresh interval (seconds)"
+        description: "How often to scan quickshell/skwd-daemon processes for memory usage. Range: 1 - 60."
+        value: Config.barQsmemRefreshSec
+        min: 1; max: 60; decimals: 0
+        onCommit: function(v) { SettingsService.setPath("components.bar.qsmem.refreshSec", v) }
+      }
+    }
+
+
+    Column {
       visible: root.activeCategory === "music"
       width: parent.width
       spacing: 8 * Config.uiScale
@@ -981,7 +1032,6 @@ Item {
           { mode: "comet",             label: "Comet" },
           { mode: "aurora",            label: "Aurora" },
           { mode: "aurora-responsive", label: "Aurora Responsive" },
-          { mode: "aurora-responsive-rainbow", label: "Aurora Responsive Rainbow" },
           { mode: "spectrum",          label: "Spectrum" },
           { mode: "off",               label: "Off" }
         ]
@@ -991,76 +1041,64 @@ Item {
       Column {
         visible: Config.barMusicVisualizer === "aurora"
         width: parent.width
-        spacing: 4
-        SettingsInput  { colors: root.colors; label: "Layer count";          value: Config.vizAuroraLayerCount; min: 1;  max: 8;  onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
-        SettingsSlider { colors: root.colors; label: "Outer layer min %";    value: Math.round(Config.vizAuroraMinAmp * 100); min: 5; max: 95; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Layer count";       description: "Stacked aurora layers behind the lyrics. More layers = denser look. Range: 1 - 8."; value: Config.vizAuroraLayerCount; min: 1;    max: 8;    decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
+        SettingsInput { colors: root.colors; label: "Outer layer min";   description: "Brightness of the dimmest back layer. Lower = more depth between layers. Range: 0.05 - 0.95."; value: Config.vizAuroraMinAmp;     min: 0.05; max: 0.95; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "aurora-responsive"
         width: parent.width
-        spacing: 4
-        SettingsInput  { colors: root.colors; label: "Layer count";          value: Config.vizAuroraLayerCount; min: 1;  max: 8;  onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
-        SettingsSlider { colors: root.colors; label: "Outer layer min %";    value: Math.round(Config.vizAuroraMinAmp * 100);       min: 5;  max: 95;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Pump curve (lower = sharper, x100)"; value: Math.round(Config.vizAuroraRespPumpExp * 100); min: 15; max: 120; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Pump scale (x100)";    value: Math.round(Config.vizAuroraRespPumpScale * 100); min: 50; max: 300; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Attack speed (x100)";  value: Math.round(Config.vizAuroraRespAttack * 100);    min: 5;  max: 100; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Decay speed (x100)";   value: Math.round(Config.vizAuroraRespDecay * 100);     min: 2;  max: 50;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v / 100) } }
-      }
-
-      Column {
-        visible: Config.barMusicVisualizer === "aurora-responsive-rainbow"
-        width: parent.width
-        spacing: 4
-        SettingsInput  { colors: root.colors; label: "Layer count";          value: Config.vizAuroraLayerCount; min: 1;  max: 8;  onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
-        SettingsSlider { colors: root.colors; label: "Outer layer min %";    value: Math.round(Config.vizAuroraMinAmp * 100);       min: 5;  max: 95;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Pump curve (lower = sharper, x100)"; value: Math.round(Config.vizAuroraRespPumpExp * 100); min: 15; max: 120; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Pump scale (x100)";    value: Math.round(Config.vizAuroraRespPumpScale * 100); min: 50; max: 300; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Attack speed (x100)";  value: Math.round(Config.vizAuroraRespAttack * 100);    min: 5;  max: 100; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v / 100) } }
-        SettingsSlider { colors: root.colors; label: "Decay speed (x100)";   value: Math.round(Config.vizAuroraRespDecay * 100);     min: 2;  max: 50;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v / 100) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Layer count";       description: "Stacked aurora layers behind the lyrics. More layers = denser look. Range: 1 - 8."; value: Config.vizAuroraLayerCount;   min: 1;    max: 8;    decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
+        SettingsInput { colors: root.colors; label: "Outer layer min";   description: "Brightness of the dimmest back layer. Lower = more depth between layers. Range: 0.05 - 0.95."; value: Config.vizAuroraMinAmp;       min: 0.05; max: 0.95; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v) } }
+        SettingsInput { colors: root.colors; label: "Pump curve";        description: "Shape of the audio-to-brightness curve. Below 1 lifts quiet audio, above 1 only reacts to loud peaks. Range: 0.15 - 1.20."; value: Config.vizAuroraRespPumpExp;  min: 0.15; max: 1.20; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v) } }
+        SettingsInput { colors: root.colors; label: "Pump scale";        description: "How fast the curve saturates. Higher = hits maximum brightness sooner. Range: 0.50 - 3.00."; value: Config.vizAuroraRespPumpScale; min: 0.50; max: 3.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v) } }
+        SettingsInput { colors: root.colors; label: "Attack speed";      description: "How fast brightness rises on a beat. 1.0 = snap to peaks instantly. Range: 0.05 - 1.00."; value: Config.vizAuroraRespAttack;   min: 0.05; max: 1.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v) } }
+        SettingsInput { colors: root.colors; label: "Decay speed";       description: "How fast brightness falls after a beat. Lower = longer tails. Range: 0.02 - 0.50."; value: Config.vizAuroraRespDecay;    min: 0.02; max: 0.50; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "pulse"
         width: parent.width
-        spacing: 4
-        SettingsInput { colors: root.colors; label: "Pill width (px)"; value: Config.vizPulsePillWidth; min: 1; max: 12; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.pulse.pillWidth", v) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Pill width (px)";   description: "Width of each pulse pill in pixels. Wider pills mean fewer pills fit. Range: 1 - 12."; value: Config.vizPulsePillWidth; min: 1; max: 12; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.pulse.pillWidth", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "vu"
         width: parent.width
-        spacing: 4
-        SettingsSlider { colors: root.colors; label: "Peak decay (x10)"; value: Math.round(Config.vizVuPeakDecay * 10); min: 2; max: 60; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.vu.peakDecay", v / 10) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Peak decay";        description: "How fast the held peak indicator falls each frame. Higher = peaks drop faster. Range: 0.2 - 6.0."; value: Config.vizVuPeakDecay;    min: 0.2; max: 6.0; decimals: 1; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.vu.peakDecay", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "spectrogram"
         width: parent.width
-        spacing: 4
-        SettingsInput { colors: root.colors; label: "History columns"; value: Config.vizSpectrogramCols; min: 20; max: 200; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.spectrogram.cols", v) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "History columns";   description: "How many past frames are kept on screen. More = longer history, wider trail. Range: 20 - 200."; value: Config.vizSpectrogramCols; min: 20; max: 200; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.spectrogram.cols", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "stardust"
         width: parent.width
-        spacing: 4
-        SettingsInput { colors: root.colors; label: "Star count"; value: Config.vizStardustCount; min: 10; max: 200; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.stardust.count", v) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Star count";        description: "Number of particles. The same count always produces the same starfield. Range: 10 - 200."; value: Config.vizStardustCount; min: 10; max: 200; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.stardust.count", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "comet"
         width: parent.width
-        spacing: 4
-        SettingsInput { colors: root.colors; label: "Trail length"; value: Config.vizCometTrailLen; min: 4; max: 80; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.comet.trailLen", v) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Trail length";      description: "How many samples the comet trail keeps. Higher = longer streak. Range: 4 - 80."; value: Config.vizCometTrailLen; min: 4; max: 80; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.comet.trailLen", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "ripple"
         width: parent.width
-        spacing: 4
-        SettingsSlider { colors: root.colors; label: "Bass spike threshold (x100)"; value: Math.round(Config.vizRippleThreshold * 100); min: 105; max: 300; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.threshold", v / 100) } }
-        SettingsInput  { colors: root.colors; label: "Ripple lifetime";              value: Config.vizRippleMaxAge;    min: 8; max: 120; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.maxAge", v) } }
+        spacing: 6
+        SettingsInput { colors: root.colors; label: "Bass spike threshold"; description: "How much louder than the running bass average a frame must be to fire a ripple. Near 1.0 fires constantly. Range: 1.05 - 3.00."; value: Config.vizRippleThreshold; min: 1.05; max: 3.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.threshold", v) } }
+        SettingsInput { colors: root.colors; label: "Ripple lifetime";      description: "Frames a ripple stays on screen before fading. Range: 8 - 120."; value: Config.vizRippleMaxAge;    min: 8;    max: 120;  decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.maxAge", v) } }
       }
 
       SettingsToggle { colors: root.colors; label: "Render visualizer above"; checked: Config.barMusicVisualizerTop;    onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerTop", v) } }

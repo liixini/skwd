@@ -22,12 +22,19 @@ Rectangle {
   property string _generateError: ""
 
   FileView {
-    id: _iconDataFile
+    id: _userIconDataFile
     path: Config.mdiIconsPath
     preload: true
     watchChanges: true
     onLoaded: root._loadIcons()
-    onFileChanged: { _iconDataFile.reload() }
+    onFileChanged: { _userIconDataFile.reload() }
+  }
+
+  FileView {
+    id: _systemIconDataFile
+    path: Config.mdiIconsSystemPath
+    preload: true
+    onLoaded: root._loadIcons()
   }
 
   Process {
@@ -36,26 +43,31 @@ Rectangle {
     onExited: function(exitCode) {
       root._generating = false
       if (exitCode === 0) {
-        _iconDataFile.reload()
+        _userIconDataFile.reload()
       } else {
         root._generateError = "icon cache generation failed (exit " + exitCode + ")"
       }
     }
   }
 
-  function _loadIcons() {
-    var text = _iconDataFile.text().trim()
-    if (!text) {
-      _ensureIconData()
-      return
-    }
+  function _tryParse(text) {
+    if (!text || !text.trim()) return false
     try {
-      _allIcons = JSON.parse(text)
+      var arr = JSON.parse(text)
+      if (!Array.isArray(arr) || arr.length === 0) return false
+      _allIcons = arr
       _generateError = ""
       _rebuildFiltered()
+      return true
     } catch (e) {
-      _generateError = "failed to parse mdi-icons.json: " + e
+      return false
     }
+  }
+
+  function _loadIcons() {
+    if (_tryParse(_userIconDataFile.text())) return
+    if (_tryParse(_systemIconDataFile.text())) return
+    _ensureIconData()
   }
 
   function _ensureIconData() {
@@ -80,8 +92,12 @@ Rectangle {
     if (visible) {
       _searchInput.text = ""
       _searchInput.forceActiveFocus()
-      if (_allIcons.length === 0) _iconDataFile.reload()
-      else _rebuildFiltered()
+      if (_allIcons.length === 0) {
+        _userIconDataFile.reload()
+        _systemIconDataFile.reload()
+      } else {
+        _rebuildFiltered()
+      }
     }
   }
 

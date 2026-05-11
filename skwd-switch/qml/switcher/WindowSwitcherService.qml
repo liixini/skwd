@@ -58,23 +58,35 @@ QtObject {
 
   
   property var _mdiByName: ({})
-  property var _mdiFile: FileView {
+  property var _mdiUserFile: FileView {
     path: service.homeDir + "/.config/skwd/data/mdi-icons.json"
     preload: true
     onLoaded: service._buildMdiMap()
   }
-  function _buildMdiMap() {
+  property var _mdiSystemFile: FileView {
+    path: (Quickshell.env("SKWD_INSTALL") || "/usr/share/skwd") + "/data/mdi-icons.json"
+    preload: true
+    onLoaded: service._buildMdiMap()
+  }
+  function _parseMdiInto(text) {
+    if (!text || !text.trim()) return null
     try {
-      var arr = JSON.parse(_mdiFile.text())
+      var arr = JSON.parse(text)
+      if (!Array.isArray(arr) || arr.length === 0) return null
       var m = {}
       for (var i = 0; i < arr.length; i++) {
         var e = arr[i]
         if (e && e.n && e.g) m[e.n.toLowerCase()] = e.g
       }
-      service._mdiByName = m
+      return m
     } catch (e) {
-      service._mdiByName = {}
+      return null
     }
+  }
+  function _buildMdiMap() {
+    var m = _parseMdiInto(_mdiUserFile.text())
+    if (!m) m = _parseMdiInto(_mdiSystemFile.text())
+    service._mdiByName = m || {}
   }
 
   function _mdiLookup(name) {

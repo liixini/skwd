@@ -5,9 +5,11 @@ Column {
     id: root
     property var colors
     property string label: ""
-    property int value: 0
-    property int min: 0
-    property int max: 1000
+    property string description: ""
+    property real value: 0
+    property real min: 0
+    property real max: 1000
+    property int decimals: 0
     property var onCommit
 
     width: parent ? parent.width : 0
@@ -19,6 +21,18 @@ Column {
         font.pixelSize: 11 * Config.uiScale
         font.weight: Font.Medium
         color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+    }
+
+    Text {
+        visible: root.description.length > 0
+        width: root.width
+        text: root.description
+        font.family: Style.fontFamily
+        font.pixelSize: 10 * Config.uiScale
+        color: root.colors
+            ? Qt.rgba(root.colors.tertiary.r, root.colors.tertiary.g, root.colors.tertiary.b, 0.55)
+            : Qt.rgba(1, 1, 1, 0.35)
+        wrapMode: Text.WordWrap
     }
 
     Rectangle {
@@ -40,12 +54,19 @@ Column {
             color: root.colors ? root.colors.tertiary : "#8bceff"
             clip: true
             selectByMouse: true
-            text: root.value.toString()
-            validator: IntValidator { bottom: root.min; top: root.max }
+            text: root.decimals === 0 ? Math.round(root.value).toString() : root.value.toFixed(root.decimals)
+            validator: DoubleValidator {
+                bottom: root.min
+                top: root.max
+                decimals: root.decimals
+                notation: DoubleValidator.StandardNotation
+            }
             onTextEdited: {
-                var n = parseInt(text)
-                if (!isNaN(n) && n >= root.min && n <= root.max && root.onCommit)
+                var n = parseFloat(text)
+                if (!isNaN(n) && n >= root.min && n <= root.max && root.onCommit) {
+                    if (root.decimals === 0) n = Math.round(n)
                     root.onCommit(n)
+                }
             }
         }
     }
