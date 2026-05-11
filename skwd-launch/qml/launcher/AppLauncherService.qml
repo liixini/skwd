@@ -102,6 +102,7 @@ QtObject {
         steamAppId: item.steamAppId,
         terminal: item.terminal,
         background: item.background,
+        backgroundThumb: item.backgroundThumb,
         customIcon: item.customIcon,
         useDesktopIcon: item.useDesktopIcon,
         displayName: item.displayName,
@@ -197,22 +198,20 @@ QtObject {
   }
 
   
+  property var _loadAppsPending: []
+
   property var _loadApps: Process {
     id: loadApps
     command: ["bash", "-c",
       "if [ -f '" + service.cacheFile + "' ]; then cat '" + service.cacheFile + "'; fi"
     ]
     running: false
-    onRunningChanged: {
-      if (!running) {
-        service.updateFilteredModel()
-      }
-    }
+    onRunningChanged: { if (running) service._loadAppsPending = [] }
     stdout: SplitParser {
       onRead: line => {
         try {
           var obj = JSON.parse(line)
-          service.appModel.append({
+          service._loadAppsPending.push({
             name: obj.name || "",
             exec: obj.exec || "",
             icon: obj.icon || "",
@@ -223,6 +222,7 @@ QtObject {
             steamAppId: obj.steamAppId || "",
             terminal: obj.terminal || false,
             background: obj.background || "",
+            backgroundThumb: obj.backgroundThumb || "",
             customIcon: obj.customIcon || "",
             useDesktopIcon: obj.useDesktopIcon === true,
             displayName: obj.displayName || "",
@@ -233,6 +233,10 @@ QtObject {
       }
     }
     onExited: {
+      if (service._loadAppsPending.length > 0) {
+        service.appModel.append(service._loadAppsPending)
+        service._loadAppsPending = []
+      }
       service._applyAppsConfig()
       service.updateFilteredModel()
     }
@@ -327,7 +331,8 @@ QtObject {
         name: it.name, exec: it.exec, icon: it.icon, thumb: it.thumb,
         iconPath: it.iconPath, categories: it.categories, source: it.source,
         steamAppId: it.steamAppId, terminal: it.terminal,
-        background: it.background, customIcon: it.customIcon,
+        background: it.background, backgroundThumb: it.backgroundThumb,
+        customIcon: it.customIcon,
         useDesktopIcon: it.useDesktopIcon,
         displayName: it.displayName, hidden: it.hidden, tags: it.tags
       }))

@@ -923,6 +923,12 @@ Item {
         checked: Config.barNotificationsHideWhenEmpty
         onToggle: function(v) { SettingsService.setPath("components.bar.notifications.hideWhenEmpty", v) }
       }
+      SettingsToggle {
+        colors: root.colors
+        label: "Always show if notifications present"
+        checked: Config.barNotificationsAlwaysShowIfPresent
+        onToggle: function(v) { SettingsService.setPath("components.bar.notifications.alwaysShowIfPresent", v) }
+      }
       SettingsInput {
         colors: root.colors
         label: "History size"

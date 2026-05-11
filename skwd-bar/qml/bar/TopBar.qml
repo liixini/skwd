@@ -195,6 +195,11 @@ PanelWindow {
 
   function _widgetShouldShow(id) {
     if (!_widgetHasData(id)) return false
+    if (id === "notifications"
+        && Config.notificationsAlwaysShowIfPresent
+        && notificationsHistory.count > 0) {
+      return true
+    }
     if (Config.barWidgetMouseover(id)) {
       if (!Config.mouseoverEnabled) return true
       return _widgetSide(id) === "left" ? bar._stickyLeft : bar._stickyRight

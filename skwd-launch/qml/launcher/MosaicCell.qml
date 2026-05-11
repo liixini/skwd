@@ -100,8 +100,9 @@ Item {
         asynchronous: true
         smooth: true
         source: cell.itemData
-            ? (cell.itemData.background ? "file://" + cell.itemData.background
-               : (cell.itemData.thumb ? "file://" + cell.itemData.thumb : ""))
+            ? (cell.itemData.backgroundThumb ? "file://" + cell.itemData.backgroundThumb
+               : (cell.itemData.background ? "file://" + cell.itemData.background
+                  : (cell.itemData.thumb ? "file://" + cell.itemData.thumb : "")))
             : ""
         sourceSize.width: cell._decodeW
         sourceSize.height: cell._decodeH

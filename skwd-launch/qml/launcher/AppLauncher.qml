@@ -799,12 +799,17 @@ Scope {
 
         Image {
           anchors.fill: parent
-          source: model.background ? "file://" + model.background : (parent._preferGlyph ? "" : (model.thumb ? "file://" + model.thumb : ""))
+          source: model.backgroundThumb
+            ? "file://" + model.backgroundThumb
+            : (model.background ? "file://" + model.background : (parent._preferGlyph ? "" : (model.thumb ? "file://" + model.thumb : "")))
           fillMode: model.source === "steam" || model.background ? Image.PreserveAspectCrop : Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
           asynchronous: true
           smooth: true
+          cache: true
+          sourceSize.width:  Math.ceil(Config.gridThumbWidth)
+          sourceSize.height: Math.ceil(Config.gridThumbHeight)
         }
 
         Text {

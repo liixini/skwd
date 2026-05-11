@@ -87,7 +87,10 @@ Item {
   }
   function _closeSplashPicker() { _splashPicker.visible = false }
   function _selectSplash(path) {
-    if (_picking) _saveAppField(_picking, "background", path)
+    if (_picking) {
+      _saveAppField(_picking, "background", path)
+      _reloadAppCache()
+    }
     _closeSplashPicker()
   }
 
@@ -578,21 +581,27 @@ Item {
       anchors.margins: 16
       spacing: 10
 
-      Row {
+      Item {
         width: parent.width
-        spacing: 8
+        height: 24
 
         Text {
           text: "SELECT SPLASH FOR " + (root._picking || "").toUpperCase()
           font.family: Style.fontFamily; font.pixelSize: 13; font.weight: Font.Bold; font.letterSpacing: 1.5
           color: root.colors ? root.colors.primary : "#ffb4ab"
+          anchors.left: parent.left
+          anchors.right: splashHeaderActions.left
+          anchors.rightMargin: 8
           anchors.verticalCenter: parent.verticalCenter
+          elide: Text.ElideRight
         }
 
-        Item { width: parent.width - 240; height: 1 }
-
         Row {
+          id: splashHeaderActions
           spacing: 4
+          anchors.right: parent.right
+          anchors.verticalCenter: parent.verticalCenter
+
           FilterButton {
             colors: root.colors
             label: "REFRESH"

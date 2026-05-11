@@ -53,6 +53,7 @@ QtObject {
     readonly property bool batteryEnabled:    _bar.battery !== false && _bar.battery?.enabled !== false
     readonly property bool notificationsEnabled: _bar.notifications?.enabled === true
     readonly property bool notificationsHideWhenEmpty: _bar.notifications?.hideWhenEmpty === true
+    readonly property bool notificationsAlwaysShowIfPresent: _bar.notifications?.alwaysShowIfPresent === true
     readonly property int  notificationsHistoryMax: _bar.notifications?.historyMax ?? 50
     property var _battery: _bar.battery ?? ({})
     readonly property var batteryNotifyRules: Array.isArray(_battery.notify) ? _battery.notify : []

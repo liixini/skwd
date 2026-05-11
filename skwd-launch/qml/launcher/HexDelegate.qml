@@ -38,7 +38,7 @@ Item {
         return "file://" + s.split("/").map(encodeURIComponent).join("/")
     }
 
-    readonly property string _bgUrl: _fileUrl(itemData ? (itemData.background || "") : "")
+    readonly property string _bgUrl: _fileUrl(itemData ? (itemData.backgroundThumb || itemData.background || "") : "")
     readonly property string _thumbUrl: _fileUrl(itemData ? (itemData.thumb || "") : "")
     readonly property string _label: itemData ? (itemData.displayName || itemData.name || "") : ""
     readonly property string _customIcon: itemData ? (itemData.customIcon || "") : ""

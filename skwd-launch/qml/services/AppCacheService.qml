@@ -15,8 +15,11 @@ QtObject {
     readonly property string splashDir: Config.splashDir
     readonly property string cacheFile: cacheDir + "/app-launcher/list.jsonl"
     readonly property string thumbDir: cacheDir + "/app-launcher/thumbs"
+    readonly property string splashThumbDir: cacheDir + "/app-launcher/splash-thumbs"
     readonly property string appsJsonPath: configDir + "/data/apps.json"
     readonly property int thumbSize: 256
+    readonly property int splashThumbWidth: 1280
+    readonly property int splashThumbHeight: 720
     readonly property int maxJobs: 4
 
     
@@ -38,7 +41,7 @@ QtObject {
 
     
     property var _mkdirs: Process {
-        command: ["mkdir", "-p", service.thumbDir]
+        command: ["mkdir", "-p", service.thumbDir, service.splashThumbDir]
         onExited: service._loadSplashIndex()
     }
 
@@ -268,6 +271,18 @@ QtObject {
             var ext = (entry.source === "steam") ? ".jpg" : ".png"
             entry._thumbPath = thumbDir + "/" + slug + ext
             entry._slug = slug
+
+            var conf = _findAppConfig(entry.name, _appsConfig)
+            var bg = conf.background || ""
+            if (bg) bg = bg.replace("~", homeDir)
+            if (bg) {
+                entry._bgSrc = bg
+                entry._bgThumbPath = splashThumbDir + "/" + slug + ".jpg"
+            } else {
+                entry._bgSrc = ""
+                entry._bgThumbPath = ""
+            }
+
             _thumbQueue.push(k)
         }
         _startThumbWorkers()
@@ -312,19 +327,32 @@ QtObject {
     }
 
     function _buildThumbCmd(entry) {
-        var thumb = _sq(entry._thumbPath)
+        var parts = []
+
         if (entry.source === "steam") {
-            return ["sh", "-c", _buildSteamThumbScript(entry.steamAppId, entry._thumbPath)]
+            parts.push(_buildSteamThumbScript(entry.steamAppId, entry._thumbPath))
+        } else if (entry.iconPath) {
+            var icon = _sq(entry.iconPath)
+            var thumb = _sq(entry._thumbPath)
+            var sz = thumbSize
+            parts.push(
+                "[ -f " + thumb + " ] || " +
+                "magick " + icon + " -resize " + sz + "x" + sz + " -background none -gravity center -extent " + sz + "x" + sz + " " + thumb + " 2>/dev/null || " +
+                "cp " + icon + " " + thumb + " 2>/dev/null || true"
+            )
         }
-        
-        if (!entry.iconPath) return ["true"]
-        var icon = _sq(entry.iconPath)
-        var sz = thumbSize
-        
-        return ["sh", "-c",
-            "[ -f " + thumb + " ] && exit 0; " +
-            "magick " + icon + " -resize " + sz + "x" + sz + " -background none -gravity center -extent " + sz + "x" + sz + " " + thumb + " 2>/dev/null || cp " + icon + " " + thumb + " 2>/dev/null || true"
-        ]
+
+        if (entry._bgSrc && entry._bgThumbPath) {
+            var src = _sq(entry._bgSrc)
+            var dst = _sq(entry._bgThumbPath)
+            parts.push(
+                "[ -f " + dst + " ] || " +
+                "magick " + src + " -resize " + splashThumbWidth + "x" + splashThumbHeight + "^ -gravity center -extent " + splashThumbWidth + "x" + splashThumbHeight + " -quality 85 " + dst + " 2>/dev/null || true"
+            )
+        }
+
+        if (parts.length === 0) return ["true"]
+        return ["sh", "-c", parts.join("; ")]
     }
 
     function _buildSteamThumbScript(appid, thumbPath) {
@@ -364,6 +392,7 @@ QtObject {
             steamAppId: entry.steamAppId || "",
             terminal: entry.terminal || false,
             background: bg,
+            backgroundThumb: entry._bgThumbPath || "",
             customIcon: conf.icon || "",
             useDesktopIcon: conf.useDesktopIcon === true,
             displayName: conf.displayName || "",
@@ -399,6 +428,11 @@ QtObject {
         _appsJsonFile.path = appsJsonPath
         _appsJsonFile.reload()
         var text = _appsJsonFile.text()
+        // SAFETY: if we read non-empty content, the file already exists and is non-empty.
+        // Refuse to rewrite it - the settings UI can add entries lazily on first edit.
+        // (Previously this would race on the async reload, read empty text, and clobber
+        //  user customizations with empty stubs.)
+        if (text && text.length > 0) return
         var existing = {}
         var comments = {}
         if (text) {

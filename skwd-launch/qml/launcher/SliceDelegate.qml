@@ -145,11 +145,15 @@ Item {
         Image {
             id: bgImage
             anchors.fill: parent
-            source: delegateItem.model.background ? "file://" + delegateItem.model.background : ""
+            source: delegateItem.model.backgroundThumb
+                ? "file://" + delegateItem.model.backgroundThumb
+                : (delegateItem.model.background ? "file://" + delegateItem.model.background : "")
             fillMode: Image.PreserveAspectCrop
             smooth: true
             asynchronous: true
             cache: true
+            sourceSize.width:  Math.ceil(delegateItem.expandedWidth)
+            sourceSize.height: Math.ceil(delegateItem.height)
             visible: status === Image.Ready
         }
 
@@ -165,6 +169,8 @@ Item {
             smooth: true
             asynchronous: true
             cache: true
+            sourceSize.width:  256
+            sourceSize.height: 256
             visible: !bgImage.visible && !imageContainer._preferGlyph && status === Image.Ready
         }
 
