@@ -1151,8 +1151,6 @@ PanelWindow {
       barHeight: bar.barHeight
       waveformHeight: bar.waveformHeight
     }
-  }
-
 
     Item {
       id: rightPanel
@@ -1211,8 +1209,8 @@ PanelWindow {
         }
       }
     }
+  }
 
-  
   WiFiDropdown {
     id: wifiDropdown
     readonly property string sideOf: bar._widgetSide("wifi")
