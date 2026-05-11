@@ -11,8 +11,9 @@ PanelWindow {
   id: window
 
   property var colors
+  property bool showing: true
 
-  visible: true
+  visible: showing
   color: "transparent"
 
   WlrLayershell.namespace: "skwd-settings"

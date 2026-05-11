@@ -60,7 +60,7 @@ QtObject {
 
     readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
     readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
-    readonly property var _allBarWidgets: ["cpu", "gpu", "memory", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var _allBarWidgets: ["cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
     readonly property var barLeftLayout:  Array.isArray(_bar.leftLayout)  ? _bar.leftLayout.filter(s => _allBarWidgets.indexOf(s) !== -1)  : _defaultBarLeftLayout
     readonly property var barRightLayout: Array.isArray(_bar.rightLayout) ? _bar.rightLayout.filter(s => _allBarWidgets.indexOf(s) !== -1) : _defaultBarRightLayout
     readonly property var barWidgetOverrides: (typeof _bar.widgets === "object" && _bar.widgets !== null) ? _bar.widgets : ({})

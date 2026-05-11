@@ -151,7 +151,7 @@ Item {
             fillMode: Image.PreserveAspectCrop
             smooth: true
             asynchronous: true
-            cache: true
+            cache: false
             sourceSize.width:  Math.ceil(delegateItem.expandedWidth)
             sourceSize.height: Math.ceil(delegateItem.height)
             visible: status === Image.Ready

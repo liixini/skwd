@@ -16,10 +16,13 @@ QtObject {
     readonly property string cacheFile: cacheDir + "/app-launcher/list.jsonl"
     readonly property string thumbDir: cacheDir + "/app-launcher/thumbs"
     readonly property string splashThumbDir: cacheDir + "/app-launcher/splash-thumbs"
+    readonly property string versionFile: cacheDir + "/app-launcher/list.version"
+
+    readonly property int cacheVersion: 2
     readonly property string appsJsonPath: configDir + "/data/apps.json"
     readonly property int thumbSize: 256
-    readonly property int splashThumbWidth: 1280
-    readonly property int splashThumbHeight: 720
+    readonly property int splashThumbWidth: 640
+    readonly property int splashThumbHeight: 360
     readonly property int maxJobs: 4
 
     
@@ -277,7 +280,7 @@ QtObject {
             if (bg) bg = bg.replace("~", homeDir)
             if (bg) {
                 entry._bgSrc = bg
-                entry._bgThumbPath = splashThumbDir + "/" + slug + ".jpg"
+                entry._bgThumbPath = splashThumbDir + "/" + slug + ".webp"
             } else {
                 entry._bgSrc = ""
                 entry._bgThumbPath = ""
@@ -402,11 +405,14 @@ QtObject {
     }
 
     
-    property var _appsJsonFile: FileView { preload: false }
+    property var _appsJsonFile: FileView {
+        path: service.appsJsonPath
+        preload: true
+        watchChanges: true
+        onFileChanged: reload()
+    }
 
     function _loadAppsConfig() {
-        _appsJsonFile.path = appsJsonPath
-        _appsJsonFile.reload()
         var text = _appsJsonFile.text()
         if (!text) return {}
         try {
@@ -425,13 +431,9 @@ QtObject {
     }
 
     function _syncAppsConfig(desktopApps, steamGames) {
-        _appsJsonFile.path = appsJsonPath
-        _appsJsonFile.reload()
         var text = _appsJsonFile.text()
         // SAFETY: if we read non-empty content, the file already exists and is non-empty.
         // Refuse to rewrite it - the settings UI can add entries lazily on first edit.
-        // (Previously this would race on the async reload, read empty text, and clobber
-        //  user customizations with empty stubs.)
         if (text && text.length > 0) return
         var existing = {}
         var comments = {}
@@ -487,9 +489,10 @@ QtObject {
 
     
     property var _cacheWriter: FileView {}
+    property var _versionWriter: FileView {}
 
     function _writeCache() {
-        
+
         _completedEntries.sort(function(a, b) {
             if (a.source !== b.source) return a.source === "desktop" ? -1 : 1
             return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
@@ -498,6 +501,9 @@ QtObject {
         var jsonl = _completedEntries.map(function(e) { return JSON.stringify(e) }).join("\n")
         _cacheWriter.path = cacheFile
         _cacheWriter.setText(jsonl + "\n")
+
+        _versionWriter.path = versionFile
+        _versionWriter.setText(String(cacheVersion) + "\n")
 
         running = false
         cacheReady()

@@ -72,7 +72,8 @@ PanelWindow {
   property real _weatherH: Config.weatherEnabled ? weatherDropdown.animatedHeight : 0
   property real _brightnessH: Config.brightnessEnabled ? brightnessDropdown.animatedHeight : 0
   property real _notifsH: Config.notificationsEnabled ? notificationsDropdown.animatedHeight : 0
-  property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH + _brightnessH + _notifsH
+  property real _qsmemH: qsmemDropdown.animatedHeight
+  property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH + _brightnessH + _notifsH + _qsmemH
 
   function _sideHeight(side) {
     return (_widgetSide("wifi")          === side ? _wifiH       : 0)
@@ -82,6 +83,7 @@ PanelWindow {
          + (_widgetSide("weather")       === side ? _weatherH    : 0)
          + (_widgetSide("brightness")    === side ? _brightnessH : 0)
          + (_widgetSide("notifications") === side ? _notifsH     : 0)
+         + (_widgetSide("qsmem")         === side ? _qsmemH      : 0)
   }
   property real leftDropdownHeight:  _sideHeight("left")
   property real rightDropdownHeight: _sideHeight("right")
@@ -136,6 +138,104 @@ PanelWindow {
 
 
   QtObject {
+    id: qsmemInfo
+    property var processes: []
+    property real totalMb: 0
+    property real totalRssMb: 0
+  }
+
+  property var _qsmemStdout: []
+  Process {
+    id: qsmemProc
+    command: ["sh", "-c",
+      "{ pgrep -x quickshell; pgrep -x skwd-daemon; } | while read pid; do " +
+      "  pss=$(awk '/^Pss:/{p+=$2} END{print p+0}' /proc/$pid/smaps_rollup 2>/dev/null); " +
+      "  rss=$(awk '/^Rss:/{p+=$2} END{print p+0}' /proc/$pid/smaps_rollup 2>/dev/null); " +
+      "  args=$(tr '\\0' ' ' < /proc/$pid/cmdline 2>/dev/null); " +
+      "  printf '%s %s %s %s\\n' \"$pid\" \"${pss:-0}\" \"${rss:-0}\" \"$args\"; " +
+      "done"]
+    stdout: SplitParser {
+      splitMarker: ""
+      onRead: data => bar._qsmemStdout.push(data)
+    }
+    onExited: {
+      var text = bar._qsmemStdout.join("")
+      bar._qsmemStdout = []
+      var lines = text.split("\n")
+      var labelOf = function(qmlPath) {
+        if (!qmlPath) return ""
+        if (qmlPath.indexOf("skwd-daemon/data/host") >= 0) return "host"
+        if (qmlPath.indexOf("skwd-wall") >= 0)         return "wall"
+        if (qmlPath.indexOf("skwd-bar") >= 0)          return "bar"
+        if (qmlPath.indexOf("skwd-launch") >= 0)       return "launcher"
+        if (qmlPath.indexOf("skwd-switch") >= 0)       return "switch"
+        if (qmlPath.indexOf("skwd-notification") >= 0) return "notification"
+        if (qmlPath.indexOf("skwd-music") >= 0)        return "music"
+        if (qmlPath.indexOf("skwd-power") >= 0)        return "power"
+        if (qmlPath.indexOf("skwd-settings") >= 0)     return "settings"
+        var parts = qmlPath.split("/")
+        for (var i = parts.length - 2; i >= 0; i--) {
+          if (parts[i] && parts[i] !== "qml" && parts[i] !== "data" && parts[i] !== "host") return parts[i]
+        }
+        return "quickshell"
+      }
+      var seen = {}
+      var out = []
+      var totalPss = 0
+      var totalRss = 0
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim()
+        if (line.length === 0) continue
+        var m = line.match(/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/)
+        if (!m) continue
+        var pssKb = parseInt(m[2], 10)
+        var rssKb = parseInt(m[3], 10)
+        var args = m[4]
+        var bin = args.split(/\s+/)[0]
+        var isQuickshell = bin === "quickshell" || bin.endsWith("/quickshell")
+        var isDaemon = bin === "skwd-daemon" || bin.endsWith("/skwd-daemon")
+        if (!isQuickshell && !isDaemon) continue
+        var label
+        if (isDaemon) {
+          label = "daemon"
+        } else {
+          var pm = args.match(/(?:^|\s)-p\s+(\S+)/)
+          var qmlPath = pm ? pm[1] : ""
+          label = labelOf(qmlPath)
+        }
+        if (seen[label]) {
+          seen[label].pss += pssKb / 1024
+          seen[label].rss += rssKb / 1024
+        } else {
+          var entry = { label: label, pss: pssKb / 1024, rss: rssKb / 1024 }
+          seen[label] = entry
+          out.push(entry)
+        }
+        totalPss += pssKb / 1024
+        totalRss += rssKb / 1024
+      }
+      out.sort(function(a, b) { return b.pss - a.pss })
+      qsmemInfo.processes = out
+      qsmemInfo.totalMb = totalPss
+      qsmemInfo.totalRssMb = totalRss
+    }
+  }
+
+  Timer {
+    id: qsmemTimer
+    interval: 5000
+    running: true
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: {
+      if (!qsmemProc.running) {
+        bar._qsmemStdout = []
+        qsmemProc.running = true
+      }
+    }
+  }
+
+  QtObject {
     id: bluetoothInfo
     property var connectedDevices: {
       if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.devices) return []
@@ -155,6 +255,7 @@ PanelWindow {
       case "cpu":           return _cpuComp
       case "gpu":           return _gpuComp
       case "memory":        return _memoryComp
+      case "qsmem":         return _qsmemComp
       case "weather":       return _weatherComp
       case "bluetooth":     return _bluetoothComp
       case "wifi":          return _wifiComp
@@ -181,6 +282,7 @@ PanelWindow {
       case "cpu":        return true
       case "gpu":        return true
       case "memory":     return true
+      case "qsmem":      return qsmemInfo.totalMb > 0
       case "weather":    return Config.weatherEnabled && bar.weatherTemp !== "" && bar.weatherTemp !== undefined
       case "bluetooth":  return Config.bluetoothEnabled && (bluetoothInfo.batteryText !== "" || Config.barWidgetLabel("bluetooth", "") !== "")
       case "wifi":       return Config.wifiEnabled && (wifiInfo.ssid !== "" || Config.barWidgetLabel("wifi", "") !== "")
@@ -332,6 +434,41 @@ PanelWindow {
         enabled: bar.activeDropdown !== ""
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         onClicked: bar.activeDropdown = ""
+      }
+    }
+  }
+
+  Component {
+    id: _qsmemComp
+    Item {
+      id: qsmemRoot
+      implicitWidth: qsmemRow.implicitWidth
+      implicitHeight: qsmemRow.implicitHeight
+      property string overrideLabel: Config.barWidgetLabel("qsmem", "")
+      Row {
+        id: qsmemRow
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 4
+        Text { text: Config.barWidgetIcon("qsmem", "󰫳"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
+        Text {
+          visible: qsmemRoot.overrideLabel !== ""
+          text: qsmemRoot.overrideLabel
+          font.pixelSize: 12; font.weight: Font.Medium
+          font.family: Style.fontFamily; color: bar.colors.tertiary
+        }
+        Text {
+          visible: qsmemRoot.overrideLabel === ""
+          text: qsmemInfo.totalMb >= 1024
+            ? (qsmemInfo.totalMb / 1024).toFixed(1) + " GB"
+            : Math.round(qsmemInfo.totalMb) + " MB"
+          font.pixelSize: 12; font.weight: Font.Medium
+          font.family: Style.fontFamily; color: bar.colors.tertiary
+        }
+      }
+      MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: bar.activeDropdown = bar.activeDropdown === "qsmem" ? "" : "qsmem"
       }
     }
   }
@@ -1183,5 +1320,21 @@ PanelWindow {
     historyModel: notificationsHistory
     onDismissRequested: function(idx) { bar._dismissNotification(idx) }
     onClearAllRequested: bar._clearAllNotifications()
+  }
+
+  QsMemDropdown {
+    id: qsmemDropdown
+    readonly property string sideOf: bar._widgetSide("qsmem")
+    side: sideOf
+    x: sideOf === "left" ? 0 : bar.width - width
+    anchors.top: parent.top
+    width: sideOf === "left" ? bar.leftDropdownWidth : bar.rightDropdownWidth
+    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH + bar._brightnessH + bar._notifsH)
+    contentWidth: bar.dropdownContentWidth
+    colors: bar.colors
+    active: bar.activeDropdown === "qsmem"
+    processes: qsmemInfo.processes
+    totalMb: qsmemInfo.totalMb
+    totalRssMb: qsmemInfo.totalRssMb
   }
 }

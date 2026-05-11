@@ -371,7 +371,10 @@ QtObject {
 
   property var _cacheCheck: Process {
     id: cacheCheck
-    command: ["test", "-s", service.cacheFile]
+    command: ["sh", "-c",
+      "[ -s '" + service.cacheFile + "' ] && " +
+      "[ \"$(cat '" + AppCacheService.versionFile + "' 2>/dev/null)\" = \"" + AppCacheService.cacheVersion + "\" ]"
+    ]
     onExited: function(exitCode) {
       if (exitCode === 0) {
         loadApps.running = true

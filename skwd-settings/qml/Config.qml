@@ -75,11 +75,12 @@ QtObject {
 
     readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
     readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
-    readonly property var allBarWidgets: ["cpu", "gpu", "memory", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var allBarWidgets: ["cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
     readonly property var barWidgetLabels: ({
         "cpu": "CPU",
         "gpu": "GPU",
         "memory": "Memory",
+        "qsmem": "Skwd memory",
         "weather": "Weather",
         "bluetooth": "Bluetooth",
         "wifi": "Wi-Fi",
@@ -93,6 +94,7 @@ QtObject {
         "cpu":           "󰻠",
         "gpu":           "󰢮",
         "memory":        "󰍛",
+        "qsmem":         "󰫳",
         "weather":       "󰖐",
         "bluetooth":     "󰂯",
         "wifi":          "󰤨",

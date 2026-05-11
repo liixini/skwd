@@ -3,3 +3,4 @@ singleton Config 1.0 Config.qml
 singleton Style 1.0 style.qml
 StyledToolTip 1.0 StyledToolTip.qml
 SettingsWindow 1.0 SettingsWindow.qml
+SettingsShell 1.0 SettingsShell.qml

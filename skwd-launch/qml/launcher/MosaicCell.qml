@@ -96,7 +96,7 @@ Item {
         id: thumb
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
-        cache: true
+        cache: false
         asynchronous: true
         smooth: true
         source: cell.itemData

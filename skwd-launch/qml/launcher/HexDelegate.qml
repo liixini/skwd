@@ -100,7 +100,7 @@ Item {
             fillMode: Image.PreserveAspectCrop
             smooth: true
             asynchronous: true
-            cache: true
+            cache: false
             sourceSize.width: Math.ceil(hexItem.width * 1.3)
             sourceSize.height: Math.ceil(hexItem.height * 1.3)
             opacity: status === Image.Ready ? 1 : 0

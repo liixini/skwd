@@ -1,23 +1,19 @@
 import Quickshell
 import QtQuick
-import "qml"
 import "qml/launcher"
 
 ShellRoot {
   id: root
 
-  Colors { id: colors }
-
-  AppLauncher {
-    id: launcher
-    colors: colors
+  LauncherShell {
+    id: launcherShell
     showing: true
   }
 
   Connections {
-    target: launcher
+    target: launcherShell
     function onShowingChanged() {
-      if (!launcher.showing) Qt.quit()
+      if (!launcherShell.showing) Qt.quit()
     }
   }
 }

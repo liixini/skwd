@@ -54,6 +54,7 @@ Scope {
       cardVisible = false
       service.searchText = ""
       searchInput.text = ""
+      Qt.callLater(function() { gc() })
     }
   }
 
@@ -77,11 +78,22 @@ Scope {
   property int sliceSpacing: Config.sliceSpacing
   property int visibleCount: Config.visibleCount
 
-  
+
   property bool isSliceMode:  Config.displayMode === "slice"
   property bool isHexMode:    Config.displayMode === "hex"
   property bool isGridMode:   Config.displayMode === "wall"
   property bool isMosaicMode: Config.displayMode === "mosaic"
+
+  property string _lastMode: Config.displayMode
+  Connections {
+    target: Config
+    function onDisplayModeChanged() {
+      if (Config.displayMode !== appLauncher._lastMode) {
+        appLauncher._lastMode = Config.displayMode
+        Qt.callLater(function() { gc() })
+      }
+    }
+  }
 
   
   readonly property int _hexCellW: Config.hexRadius * 2
@@ -402,7 +414,7 @@ Scope {
       Behavior on width { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
 
       orientation: ListView.Horizontal
-      model: service.filteredModel
+      model: appLauncher.cardVisible && appLauncher.isSliceMode ? service.filteredModel : null
       clip: false
       spacing: appLauncher.sliceSpacing
 
@@ -588,7 +600,9 @@ Scope {
         }
       }
 
-      model: Math.ceil((service.filteredModel ? service.filteredModel.count : 0) / Math.max(1, _rows))
+      model: (appLauncher.cardVisible && appLauncher.isHexMode)
+        ? Math.ceil((service.filteredModel ? service.filteredModel.count : 0) / Math.max(1, _rows))
+        : 0
 
       spacing: 0
       highlightFollowsCurrentItem: true
@@ -717,7 +731,7 @@ Scope {
       cellWidth: Config.gridThumbWidth + appLauncher._gridCellGap
       cellHeight: Config.gridThumbHeight + appLauncher._gridCellGap
       clip: true
-      model: service.filteredModel
+      model: appLauncher.cardVisible && appLauncher.isGridMode ? service.filteredModel : null
       cacheBuffer: 300
       boundsBehavior: Flickable.StopAtBounds
       
@@ -807,7 +821,7 @@ Scope {
           verticalAlignment: Image.AlignVCenter
           asynchronous: true
           smooth: true
-          cache: true
+          cache: false
           sourceSize.width:  Math.ceil(Config.gridThumbWidth)
           sourceSize.height: Math.ceil(Config.gridThumbHeight)
         }

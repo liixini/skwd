@@ -2,23 +2,24 @@ import Quickshell
 import QtQuick
 import "qml"
 
-
 ShellRoot {
   id: root
 
-  Colors { id: colors }
-
-  SettingsWindow {
-    id: settingsWindow
-    colors: colors
-    
-    
-    onCloseRequested: _quitTimer.restart()
+  SettingsShell {
+    id: settingsShell
+    showing: true
   }
 
   Timer {
     id: _quitTimer
     interval: 300
     onTriggered: Qt.quit()
+  }
+
+  Connections {
+    target: settingsShell
+    function onShowingChanged() {
+      if (!settingsShell.showing) _quitTimer.restart()
+    }
   }
 }
