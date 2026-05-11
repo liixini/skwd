@@ -981,6 +981,7 @@ Item {
           { mode: "comet",             label: "Comet" },
           { mode: "aurora",            label: "Aurora" },
           { mode: "aurora-responsive", label: "Aurora Responsive" },
+          { mode: "aurora-responsive-rainbow", label: "Aurora Responsive Rainbow" },
           { mode: "spectrum",          label: "Spectrum" },
           { mode: "off",               label: "Off" }
         ]
@@ -997,6 +998,18 @@ Item {
 
       Column {
         visible: Config.barMusicVisualizer === "aurora-responsive"
+        width: parent.width
+        spacing: 4
+        SettingsInput  { colors: root.colors; label: "Layer count";          value: Config.vizAuroraLayerCount; min: 1;  max: 8;  onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
+        SettingsSlider { colors: root.colors; label: "Outer layer min %";    value: Math.round(Config.vizAuroraMinAmp * 100);       min: 5;  max: 95;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100) } }
+        SettingsSlider { colors: root.colors; label: "Pump curve (lower = sharper, x100)"; value: Math.round(Config.vizAuroraRespPumpExp * 100); min: 15; max: 120; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v / 100) } }
+        SettingsSlider { colors: root.colors; label: "Pump scale (x100)";    value: Math.round(Config.vizAuroraRespPumpScale * 100); min: 50; max: 300; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v / 100) } }
+        SettingsSlider { colors: root.colors; label: "Attack speed (x100)";  value: Math.round(Config.vizAuroraRespAttack * 100);    min: 5;  max: 100; onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v / 100) } }
+        SettingsSlider { colors: root.colors; label: "Decay speed (x100)";   value: Math.round(Config.vizAuroraRespDecay * 100);     min: 2;  max: 50;  onChange: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v / 100) } }
+      }
+
+      Column {
+        visible: Config.barMusicVisualizer === "aurora-responsive-rainbow"
         width: parent.width
         spacing: 4
         SettingsInput  { colors: root.colors; label: "Layer count";          value: Config.vizAuroraLayerCount; min: 1;  max: 8;  onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }

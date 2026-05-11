@@ -44,7 +44,7 @@ PanelWindow {
 
   property real barHeight: 32
   property real topMargin: -1
-  property real waveformHeight: (Config.visualizerTheme === "aurora" || Config.visualizerTheme === "aurora-responsive") ? 28 : 14
+  property real waveformHeight: (Config.visualizerTheme === "aurora" || Config.visualizerTheme === "aurora-responsive" || Config.visualizerTheme === "aurora-responsive-rainbow") ? 28 : 14
   property real slideOffset: barVisible ? 0 : -(barHeight + topMargin)
 
 
@@ -963,7 +963,7 @@ PanelWindow {
     id: batteryInfo
     readonly property var device: UPower.displayDevice
     readonly property bool realPresent: device && device.isPresent
-    readonly property real realPercentage: device ? device.percentage : 0
+    readonly property real realPercentage: device ? device.percentage * 100 : 0
     readonly property int realState: device ? device.state : 0
 
     property real mockPercentage: 72
