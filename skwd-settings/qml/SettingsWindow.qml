@@ -41,6 +41,7 @@ PanelWindow {
     { key: "music",        label: "MUSIC",        sectionId: "music" },
     { key: "notification", label: "NOTIFICATION", sectionId: "notification" },
     { key: "bar",          label: "BAR",          sectionId: "bar" },
+    { key: "power",        label: "POWER",        sectionId: "power" },
     { key: "modules",      label: "MODULES",      sectionId: "modules" }
   ]
 
@@ -170,6 +171,7 @@ PanelWindow {
               case "bar":          return _barComp
               case "music":        return _musicComp
               case "notification": return _notifComp
+              case "power":        return _powerComp
               case "modules":      return _modulesComp
               case "placeholder":  return _placeholderComp
               default:             return _placeholderComp
@@ -196,6 +198,7 @@ PanelWindow {
         Component { id: _barComp;         BarSettings {} }
         Component { id: _musicComp;       MusicSettings {} }
         Component { id: _notifComp;       NotificationSettings {} }
+        Component { id: _powerComp;       PowerSettings {} }
         Component { id: _modulesComp;     ModulesSettings {} }
         Component { id: _placeholderComp; PlaceholderSection {} }
       }

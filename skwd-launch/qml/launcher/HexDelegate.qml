@@ -41,6 +41,9 @@ Item {
     readonly property string _bgUrl: _fileUrl(itemData ? (itemData.background || "") : "")
     readonly property string _thumbUrl: _fileUrl(itemData ? (itemData.thumb || "") : "")
     readonly property string _label: itemData ? (itemData.displayName || itemData.name || "") : ""
+    readonly property string _customIcon: itemData ? (itemData.customIcon || "") : ""
+    readonly property bool   _useDesktopIcon: itemData ? (itemData.useDesktopIcon === true) : false
+    readonly property bool   _preferGlyph: _customIcon !== "" && !_useDesktopIcon
 
     Item {
         id: hexMask
@@ -109,7 +112,7 @@ Item {
             width: hexItem.width * 0.55
             height: hexItem.height * 0.55
             anchors.centerIn: parent
-            source: bgImage.status === Image.Ready ? "" : hexItem._thumbUrl
+            source: (bgImage.status === Image.Ready || hexItem._preferGlyph) ? "" : hexItem._thumbUrl
             fillMode: Image.PreserveAspectFit
             smooth: true
             asynchronous: true
@@ -117,6 +120,15 @@ Item {
             sourceSize.height: 256
             opacity: status === Image.Ready ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Style.animNormal; easing.type: Easing.OutCubic } }
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: hexItem._customIcon
+            font.family: Style.fontFamilyIcons
+            font.pixelSize: Math.max(24, hexItem.height * 0.4)
+            color: hexItem.colors ? Qt.rgba(hexItem.colors.primary.r, hexItem.colors.primary.g, hexItem.colors.primary.b, 0.85) : Qt.rgba(1, 1, 1, 0.6)
+            visible: hexItem._preferGlyph && bgImage.status !== Image.Ready
         }
 
         layer.enabled: true

@@ -90,6 +90,22 @@ Item {
     if (_picking) _saveAppField(_picking, "background", path)
     _closeSplashPicker()
   }
+
+  property string _iconPickingApp: ""
+  property string _iconPickingCurrent: ""
+  function _openIconPicker(appName, currentGlyph) {
+    _iconPickingApp = appName
+    _iconPickingCurrent = currentGlyph
+    _iconPicker.visible = true
+  }
+  function _closeIconPicker() { _iconPicker.visible = false; _iconPickingApp = "" }
+  function _selectIcon(glyph) {
+    if (_iconPickingApp) {
+      _saveAppField(_iconPickingApp, "icon", glyph)
+      _reloadAppCache()
+    }
+    _closeIconPicker()
+  }
   function _navigateTo(dir) {
     _pickerDir = dir
     _splashLister.refresh()
@@ -101,25 +117,34 @@ Item {
     _navigateTo(slash > 0 ? dir.substring(0, slash) : "/")
   }
 
+  property var _appsData: ({})
+
   property var _appsConfigFile: FileView {
     path: Config.appsConfigPath
     preload: true
+    watchChanges: true
+    onLoaded: {
+      root._appsData = root._parseAppsConfig()
+      root._reloadAppCache()
+    }
+    onFileChanged: reload()
   }
 
-  function _readAppsConfig() {
-    _appsConfigFile.reload()
-    try { return JSON.parse(_appsConfigFile.text()) } catch(e) { return {} }
+  function _parseAppsConfig() {
+    try { return JSON.parse(_appsConfigFile.text() || "{}") } catch(e) { return {} }
   }
 
   function _saveAppField(appName, field, value) {
-    var data = _readAppsConfig()
+    var data = JSON.parse(JSON.stringify(root._appsData || {}))
     var key = appName.toLowerCase()
     if (typeof data[key] !== "object" || data[key] === null) data[key] = {}
-    if (value === "" || value === false || value === null || value === undefined) {
+    var isEmpty = (value === "" || value === false || value === null || value === undefined)
+    if (isEmpty) {
       delete data[key][field]
     } else {
       data[key][field] = value
     }
+    root._appsData = data
     _appsConfigFile.setText(JSON.stringify(data, null, 2) + "\n")
   }
 
@@ -132,7 +157,7 @@ Item {
   }
   function _reloadAppCache() {
     var raw = _appCacheFile.text() || ""
-    var apps = _readAppsConfig()
+    var apps = root._appsData || {}
     var rows = []
     if (raw) {
       var lines = raw.split("\n")
@@ -147,6 +172,7 @@ Item {
             displayName: override.displayName || "",
             background: override.background || "",
             customIcon: override.icon || "",
+            useDesktopIcon: override.useDesktopIcon === true,
             hidden: override.hidden === true,
             tags: override.tags || ""
           })
@@ -164,11 +190,12 @@ Item {
       for (var u = 0; u < rows.length; u++) {
         var existing = _appCacheList.get(u)
         var r = rows[u]
-        if (existing.displayName !== r.displayName) _appCacheList.setProperty(u, "displayName", r.displayName)
-        if (existing.background  !== r.background)  _appCacheList.setProperty(u, "background",  r.background)
-        if (existing.customIcon  !== r.customIcon)  _appCacheList.setProperty(u, "customIcon",  r.customIcon)
-        if (existing.hidden      !== r.hidden)      _appCacheList.setProperty(u, "hidden",      r.hidden)
-        if (existing.tags        !== r.tags)        _appCacheList.setProperty(u, "tags",        r.tags)
+        if (existing.displayName    !== r.displayName)    _appCacheList.setProperty(u, "displayName",    r.displayName)
+        if (existing.background     !== r.background)     _appCacheList.setProperty(u, "background",     r.background)
+        if (existing.customIcon     !== r.customIcon)     _appCacheList.setProperty(u, "customIcon",     r.customIcon)
+        if (existing.useDesktopIcon !== r.useDesktopIcon) _appCacheList.setProperty(u, "useDesktopIcon", r.useDesktopIcon)
+        if (existing.hidden         !== r.hidden)         _appCacheList.setProperty(u, "hidden",         r.hidden)
+        if (existing.tags           !== r.tags)           _appCacheList.setProperty(u, "tags",           r.tags)
       }
       return
     }
@@ -488,15 +515,19 @@ Item {
               displayName: model.displayName || ""
               backgroundPath: model.background || ""
               customIcon: model.customIcon || ""
+              useDesktopIcon: model.useDesktopIcon || false
               hidden: model.hidden || false
               tags: model.tags || ""
               width: appList.width
-              visible: root._appQuery === "" || ((model.name || "").toLowerCase().indexOf(root._appQuery) !== -1)
+              visible: root._appQuery === ""
+                || ((model.name        || "").toLowerCase().indexOf(root._appQuery) !== -1)
+                || ((model.displayName || "").toLowerCase().indexOf(root._appQuery) !== -1)
               onSaveField: function(field, value) {
                 root._saveAppField(model.name, field, value)
                 root._reloadAppCache()
               }
               onBrowseRequested: root._openSplashPicker(model.name, model.background || "")
+              onIconPickRequested: root._openIconPicker(model.name, model.customIcon || "")
             }
           }
         }
@@ -697,5 +728,17 @@ Item {
         }
       }
     }
+  }
+
+  IconPicker {
+    id: _iconPicker
+    parent: root
+    anchors.fill: parent
+    z: 200
+    visible: false
+    colors: root.colors
+    currentGlyph: root._iconPickingCurrent
+    onIconSelected: function(glyph) { root._selectIcon(glyph) }
+    onCancelled: root._closeIconPicker()
   }
 }

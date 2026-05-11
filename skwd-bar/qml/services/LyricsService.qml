@@ -75,9 +75,40 @@ QtObject {
 
         _lastTrackKey = key
         playerName = player.identity || ""
-        state = "searching"
-        lyricsSearching()
-        _fetchLyrics(artist, cleanTitle, key)
+        _peekLyrics(artist, cleanTitle, key)
+    }
+
+    function _peekLyrics(artist, title, trackKey) {
+        DaemonClient.call("lyrics.peek", {artist: artist, title: title}, function(result, err) {
+            if (err) {
+                if (service._isActiveTrackRequest(trackKey)) {
+                    service.state = "nolyrics"
+                    service.lines = []
+                    service.lyricsNotFound()
+                }
+                return
+            }
+            if (!service._isActiveTrackRequest(trackKey)) return
+
+            if (result && result.lines && result.lines.length > 0) {
+                service.lines = result.lines
+                service.enhanced = result.enhanced || false
+                service.state = "haslyrics"
+                service.lyricsReady({
+                    lines: result.lines,
+                    enhanced: result.enhanced || false,
+                    player: service.playerName
+                })
+            } else if (result && result.notFound) {
+                service.state = "nolyrics"
+                service.lines = []
+                service.lyricsNotFound()
+            } else {
+                service.state = "searching"
+                service.lyricsSearching()
+                service._fetchLyrics(artist, title, trackKey)
+            }
+        })
     }
 
     function _findActivePlayer() {

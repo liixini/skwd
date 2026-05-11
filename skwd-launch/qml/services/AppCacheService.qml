@@ -365,6 +365,7 @@ QtObject {
             terminal: entry.terminal || false,
             background: bg,
             customIcon: conf.icon || "",
+            useDesktopIcon: conf.useDesktopIcon === true,
             displayName: conf.displayName || "",
             hidden: !!conf.hidden,
             tags: conf.tags || ""
@@ -431,7 +432,7 @@ QtObject {
         output["_comment"] = comments["_comment"] ||
             "App customization for the launcher and window switcher. Each key is matched case-insensitively."
         output["_usage"] = comments["_usage"] ||
-            "Each value is an object with optional fields: background (image path), icon (nerd font glyph), displayName (custom name shown in UI), hidden (true to hide from launcher/switcher), tags (space-separated searchable tags)."
+            "Each value is an object with optional fields: background (image path), icon (nerd font glyph), useDesktopIcon (true to force the .desktop icon instead of the custom glyph), displayName (custom name shown in UI), hidden (true to hide from launcher/switcher), tags (space-separated searchable tags)."
         if (comments["_example"]) output["_example"] = comments["_example"]
 
         var keys = Object.keys(existing).sort()

@@ -42,10 +42,30 @@ QtObject {
     readonly property string mainMonitor: _data.monitor ?? ""
     readonly property int weatherPollMs: _data.intervals?.weatherPollMs ?? 0
     readonly property int wifiPollMs: _data.intervals?.wifiPollMs ?? 0
+    readonly property bool devMode: _data.dev === true
 
     
     property var _bar: _data.components?.bar ?? {}
     readonly property bool barEnabled: _bar.enabled !== false
+    readonly property bool mouseoverEnabled: _bar.mouseoverEnabled !== false
+
+    readonly property bool brightnessEnabled: _bar.brightness !== undefined && _bar.brightness !== false && _bar.brightness?.enabled !== false
+    readonly property bool batteryEnabled:    _bar.battery !== false && _bar.battery?.enabled !== false
+    readonly property bool notificationsEnabled: _bar.notifications?.enabled === true
+    readonly property bool notificationsHideWhenEmpty: _bar.notifications?.hideWhenEmpty === true
+    readonly property int  notificationsHistoryMax: _bar.notifications?.historyMax ?? 50
+    property var _battery: _bar.battery ?? ({})
+    readonly property var batteryNotifyRules: Array.isArray(_battery.notify) ? _battery.notify : []
+
+    readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
+    readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
+    readonly property var _allBarWidgets: ["cpu", "gpu", "memory", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var barLeftLayout:  Array.isArray(_bar.leftLayout)  ? _bar.leftLayout.filter(s => _allBarWidgets.indexOf(s) !== -1)  : _defaultBarLeftLayout
+    readonly property var barRightLayout: Array.isArray(_bar.rightLayout) ? _bar.rightLayout.filter(s => _allBarWidgets.indexOf(s) !== -1) : _defaultBarRightLayout
+    readonly property var barWidgetOverrides: (typeof _bar.widgets === "object" && _bar.widgets !== null) ? _bar.widgets : ({})
+    function barWidgetIcon(id, fallback)  { var o = barWidgetOverrides[id]; return (o && o.icon)  ? o.icon  : fallback }
+    function barWidgetLabel(id, fallback) { var o = barWidgetOverrides[id]; return (o && o.label) ? o.label : fallback }
+    function barWidgetMouseover(id)       { var o = barWidgetOverrides[id]; return !!(o && o.mouseover) }
     readonly property var weatherCities: {
         let arr = _bar.weather?.cities
         if (Array.isArray(arr) && arr.length > 0) return arr.filter(s => typeof s === "string" && s.length > 0)
@@ -76,6 +96,9 @@ QtObject {
     readonly property bool musicAutohide: (_bar.music?.autohide !== false)
     readonly property bool musicShowMeta: (_bar.music?.showMeta !== false)
     readonly property bool musicShowLyrics: (_bar.music?.showLyrics !== false)
+    readonly property bool musicAlwaysHoverable: (_bar.music?.alwaysHoverable === true)
+    readonly property bool musicCleanVisualizer: (_bar.music?.cleanVisualizer === true)
+    readonly property bool musicShowLyricsStatus: (_bar.music?.showLyricsStatus !== false)
 
     property var _viz: _bar.music?.viz ?? ({})
     readonly property real vizAuroraMinAmp:        _viz.aurora?.minAmp        ?? 0.22

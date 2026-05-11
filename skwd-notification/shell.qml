@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 import QtQuick
 import "qml"
@@ -7,6 +8,42 @@ ShellRoot {
     id: root
 
     Colors { id: colors }
+
+    property var historyEntries: []
+
+    Process {
+        id: ensureHistoryDir
+        command: ["mkdir", "-p", Config.historyPath.substring(0, Config.historyPath.lastIndexOf("/"))]
+        running: true
+    }
+
+    FileView {
+        id: historyFile
+        path: Config.historyPath
+    }
+
+    function _twoDigit(n) { return (n < 10 ? "0" : "") + n }
+
+    function _writeHistory() {
+        var text = JSON.stringify(root.historyEntries.slice(0, Math.max(1, Config.historyMax)), null, 0)
+        historyFile.setText(text)
+    }
+
+    function _recordNotification(notification) {
+        var now = new Date()
+        var entry = {
+            ts:       now.getTime(),
+            appName:  notification.appName  || "",
+            summary:  notification.summary  || "",
+            body:     notification.body     || "",
+            timeText: _twoDigit(now.getHours()) + ":" + _twoDigit(now.getMinutes())
+        }
+        var arr = root.historyEntries.slice()
+        arr.unshift(entry)
+        while (arr.length > Math.max(1, Config.historyMax)) arr.pop()
+        root.historyEntries = arr
+        _writeHistory()
+    }
 
     NotificationServer {
         id: notificationServer
@@ -24,6 +61,7 @@ ShellRoot {
                 return
             }
             notification.tracked = true
+            root._recordNotification(notification)
         }
     }
 

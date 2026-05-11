@@ -43,7 +43,8 @@ Scope {
     var result = []
     for (var i = 0; i < src.length; i++) {
       var opt = src[i]
-      var cmd = _commands[opt.action] || ""
+      if (opt.enabled === false) continue
+      var cmd = opt.command && opt.command.length > 0 ? opt.command : (_commands[opt.action] || "")
       if (cmd) result.push({ label: opt.label || "", icon: opt.icon || "", command: cmd })
     }
     return result

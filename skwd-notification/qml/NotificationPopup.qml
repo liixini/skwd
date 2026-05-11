@@ -11,6 +11,8 @@ Scope {
 
     readonly property int notifCount: notifications ? notifications.values.length : 0
 
+    readonly property bool onLeft: Config.popupSide === "left"
+
     PanelWindow {
         id: notifPanel
 
@@ -18,10 +20,11 @@ Scope {
 
         anchors {
             top: true
-            right: true
+            left: notifScope.onLeft
+            right: !notifScope.onLeft
         }
 
-        implicitWidth: Config.popupWidth + Config.popupRightMargin * 2
+        implicitWidth: Config.popupWidth + (notifScope.onLeft ? Config.popupLeftMargin : Config.popupRightMargin) * 2
         implicitHeight: Math.max(1, Config.popupTopMargin + popupColumn.childrenRect.height + 8)
 
         color: "transparent"
@@ -31,13 +34,15 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-        
+
         exclusionMode: ExclusionMode.Auto
 
         Column {
             id: popupColumn
-            anchors.right: parent.right
-            anchors.rightMargin: Config.popupRightMargin
+            anchors.right: notifScope.onLeft ? undefined : parent.right
+            anchors.left:  notifScope.onLeft ? parent.left  : undefined
+            anchors.rightMargin: notifScope.onLeft ? 0 : Config.popupRightMargin
+            anchors.leftMargin:  notifScope.onLeft ? Config.popupLeftMargin : 0
             anchors.top: parent.top
             anchors.topMargin: Config.popupTopMargin
             width: Config.popupWidth
@@ -52,6 +57,7 @@ Scope {
                     notification: modelData
                     colors: notifScope.colors
                     cardWidth: Config.popupWidth
+                    onLeft: notifScope.onLeft
 
                     visible: index >= notifScope.notifCount - Config.popupMaxVisible
                 }
@@ -65,6 +71,8 @@ Scope {
         property var notification
         property var colors
         property int cardWidth: 320
+        property bool onLeft: false
+        readonly property real _slideFrom: card.onLeft ? -40 : 40
 
         width: cardWidth
         height: contentColumn.implicitHeight + 24
@@ -75,7 +83,7 @@ Scope {
         property real lineProgress: 0
 
         opacity: 0
-        transform: Translate { id: cardTranslate; x: 40 }
+        transform: Translate { id: cardTranslate; x: card._slideFrom }
 
         Component.onCompleted: {
             cardEntryAnim.start()
@@ -85,7 +93,7 @@ Scope {
         ParallelAnimation {
             id: cardEntryAnim
             NumberAnimation { target: card; property: "opacity"; from: 0; to: 1; duration: 350; easing.type: Easing.OutCubic }
-            NumberAnimation { target: cardTranslate; property: "x"; from: 40; to: 0; duration: 350; easing.type: Easing.OutCubic }
+            NumberAnimation { target: cardTranslate; property: "x"; from: card._slideFrom; to: 0; duration: 350; easing.type: Easing.OutCubic }
             NumberAnimation { target: card; property: "lineProgress"; from: 0; to: 1; duration: 600; easing.type: Easing.OutCubic }
         }
 
@@ -93,7 +101,7 @@ Scope {
             id: cardExitAnim
             ParallelAnimation {
                 NumberAnimation { target: card; property: "opacity"; to: 0; duration: 250; easing.type: Easing.InCubic }
-                NumberAnimation { target: cardTranslate; property: "x"; to: 40; duration: 250; easing.type: Easing.InCubic }
+                NumberAnimation { target: cardTranslate; property: "x"; to: card._slideFrom; duration: 250; easing.type: Easing.InCubic }
             }
             NumberAnimation { target: card; property: "height"; to: 0; duration: 180; easing.type: Easing.InOutCubic }
             ScriptAction {
@@ -126,6 +134,23 @@ Scope {
             else if (!dismissing) autoExpireTimer.restart()
         }
 
+        function _shapePoints(s, w, h, onLeft) {
+            if (onLeft) {
+                return [
+                    { x: s, y: 0 },
+                    { x: w, y: 0 },
+                    { x: w - s, y: h },
+                    { x: 0, y: h }
+                ]
+            }
+            return [
+                { x: 0, y: 0 },
+                { x: w - s, y: 0 },
+                { x: w, y: h },
+                { x: s, y: h }
+            ]
+        }
+
         Canvas {
             id: cardBg
             anchors.fill: parent
@@ -133,12 +158,10 @@ Scope {
             onPaint: {
                 var ctx = getContext("2d")
                 ctx.clearRect(0, 0, width, height)
-                var s = card.slant
+                var pts = card._shapePoints(card.slant, width, height, card.onLeft)
                 ctx.beginPath()
-                ctx.moveTo(0, 0)
-                ctx.lineTo(width - s, 0)
-                ctx.lineTo(width, height)
-                ctx.lineTo(s, height)
+                ctx.moveTo(pts[0].x, pts[0].y)
+                for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
                 ctx.closePath()
                 var c = card.colors
                 ctx.fillStyle = c
@@ -151,6 +174,7 @@ Scope {
                 function onColorsChanged() { cardBg.requestPaint() }
                 function onWidthChanged() { cardBg.requestPaint() }
                 function onHeightChanged() { cardBg.requestPaint() }
+                function onOnLeftChanged() { cardBg.requestPaint() }
             }
         }
 
@@ -161,25 +185,29 @@ Scope {
             onPaint: {
                 var ctx = getContext("2d")
                 ctx.clearRect(0, 0, width, height)
-                var s = card.slant
                 var p = card.lineProgress
                 if (p <= 0) return
                 ctx.strokeStyle = card.colors ? card.colors.primary : Style.fallbackPrimary
                 ctx.lineWidth = 2
                 ctx.lineCap = "round"
-                var perim = width * 2 + height * 2
+                var pts = card._shapePoints(card.slant, width, height, card.onLeft)
+                var segments = []
+                for (var i = 0; i < pts.length; i++) {
+                    var next = pts[(i + 1) % pts.length]
+                    var dx = next.x - pts[i].x, dy = next.y - pts[i].y
+                    segments.push({
+                        x1: pts[i].x, y1: pts[i].y,
+                        x2: next.x,   y2: next.y,
+                        len: Math.sqrt(dx*dx + dy*dy)
+                    })
+                }
+                var perim = segments.reduce(function(a, s) { return a + s.len }, 0)
                 var len = perim * p
-                var segments = [
-                    {x1: 0, y1: 0, x2: width - s, y2: 0, len: width - s},
-                    {x1: width - s, y1: 0, x2: width, y2: height, len: Math.sqrt(s*s + height*height)},
-                    {x1: width, y1: height, x2: s, y2: height, len: width - s},
-                    {x1: s, y1: height, x2: 0, y2: 0, len: Math.sqrt(s*s + height*height)}
-                ]
                 ctx.beginPath()
                 var remain = len
                 var started = false
-                for (var i = 0; i < segments.length && remain > 0; i++) {
-                    var seg = segments[i]
+                for (var k = 0; k < segments.length && remain > 0; k++) {
+                    var seg = segments[k]
                     if (!started) { ctx.moveTo(seg.x1, seg.y1); started = true }
                     var frac = Math.min(1, remain / seg.len)
                     var ex = seg.x1 + (seg.x2 - seg.x1) * frac
@@ -193,6 +221,7 @@ Scope {
                 target: card
                 function onLineProgressChanged() { cardBorder.requestPaint() }
                 function onColorsChanged() { cardBorder.requestPaint() }
+                function onOnLeftChanged() { cardBorder.requestPaint() }
             }
         }
 

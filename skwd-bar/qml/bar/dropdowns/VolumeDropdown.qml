@@ -8,7 +8,9 @@ Rectangle {
 
   required property var colors
 
-  
+  property real contentWidth: 320
+  property string side: "right"
+
   property bool active: false
   readonly property real animatedHeight: _animatedHeight
 
@@ -48,12 +50,14 @@ Rectangle {
   
   Column {
     id: volumeColumn
-    anchors.right: parent.right
-    anchors.rightMargin: 12
+    anchors.left:  root.side === "left"  ? parent.left  : undefined
+    anchors.right: root.side === "right" ? parent.right : undefined
+    anchors.leftMargin:  root.side === "left"  ? 12 : 0
+    anchors.rightMargin: root.side === "right" ? 12 : 0
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 12
     spacing: 10
-    width: parent.width - 24
+    width: root.contentWidth - 24
 
     onImplicitHeightChanged: {
       if (root.active) {

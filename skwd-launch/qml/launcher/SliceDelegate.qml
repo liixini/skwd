@@ -153,6 +153,8 @@ Item {
             visible: status === Image.Ready
         }
 
+        readonly property bool _preferGlyph: !!delegateItem.model.customIcon && !delegateItem.model.useDesktopIcon
+
         Image {
             id: thumbImage
             anchors.fill: parent
@@ -163,22 +165,23 @@ Item {
             smooth: true
             asynchronous: true
             cache: true
-            visible: !bgImage.visible && status === Image.Ready
+            visible: !bgImage.visible && !imageContainer._preferGlyph && status === Image.Ready
         }
 
         Rectangle {
             anchors.fill: parent
-            visible: !bgImage.visible && !thumbImage.visible
+            visible: !bgImage.visible && !thumbImage.visible && !glyphIcon.visible
             color: delegateItem.colors ? Qt.rgba(delegateItem.colors.surfaceVariant.r, delegateItem.colors.surfaceVariant.g, delegateItem.colors.surfaceVariant.b, 0.8) : Qt.rgba(0.18, 0.20, 0.25, 0.8)
         }
 
         Text {
+            id: glyphIcon
             anchors.centerIn: parent
             text: delegateItem.model.customIcon || ""
             font.family: Style.fontFamilyIcons
             font.pixelSize: 48
             color: delegateItem.colors ? Qt.rgba(delegateItem.colors.primary.r, delegateItem.colors.primary.g, delegateItem.colors.primary.b, 0.7) : Qt.rgba(1, 1, 1, 0.5)
-            visible: !bgImage.visible && delegateItem.model.customIcon
+            visible: !bgImage.visible && imageContainer._preferGlyph
         }
 
         Rectangle {

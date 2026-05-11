@@ -70,7 +70,31 @@ Item {
       }
       SettingsInput { colors: root.colors; label: "Popup width";        value: Config.notifPopupWidth;       min: 200; max: 600; onCommit: function(v) { root._save("popupWidth", v) } }
       SettingsInput { colors: root.colors; label: "Right margin";       value: Config.notifPopupRightMargin; min: 0;   max: 200; onCommit: function(v) { root._save("popupRightMargin", v) } }
+      SettingsInput { colors: root.colors; label: "Left margin";        value: Config.notifPopupLeftMargin;  min: 0;   max: 200; onCommit: function(v) { root._save("popupLeftMargin", v) } }
       SettingsInput { colors: root.colors; label: "Top margin";         value: Config.notifPopupTopMargin;   min: 0;   max: 200; onCommit: function(v) { root._save("popupTopMargin", v) } }
+
+      Text {
+        text: "SIDE"
+        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      }
+      Row {
+        spacing: -4
+        Repeater {
+          model: [
+            { key: "left",  label: "Left"  },
+            { key: "right", label: "Right" }
+          ]
+          FilterButton {
+            colors: root.colors
+            label: modelData.label
+            skew: 8 * Config.uiScale
+            height: 26 * Config.uiScale
+            isActive: Config.notifPopupSide === modelData.key
+            onClicked: root._save("popupSide", modelData.key)
+          }
+        }
+      }
     }
 
 

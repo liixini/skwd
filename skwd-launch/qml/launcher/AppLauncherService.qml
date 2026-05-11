@@ -103,6 +103,7 @@ QtObject {
         terminal: item.terminal,
         background: item.background,
         customIcon: item.customIcon,
+        useDesktopIcon: item.useDesktopIcon,
         displayName: item.displayName,
         tags: item.tags
       })
@@ -134,6 +135,7 @@ QtObject {
           if (f.background !== r.background) { filteredModel.setProperty(u, "background", r.background); anyDelta = true }
           if (f.displayName !== r.displayName) { filteredModel.setProperty(u, "displayName", r.displayName); anyDelta = true }
           if (f.customIcon !== r.customIcon) { filteredModel.setProperty(u, "customIcon", r.customIcon); anyDelta = true }
+          if (f.useDesktopIcon !== r.useDesktopIcon) { filteredModel.setProperty(u, "useDesktopIcon", r.useDesktopIcon); anyDelta = true }
           if (f.thumb !== r.thumb) { filteredModel.setProperty(u, "thumb", r.thumb); anyDelta = true }
           if (f.tags !== r.tags) { filteredModel.setProperty(u, "tags", r.tags); anyDelta = true }
         }
@@ -222,6 +224,7 @@ QtObject {
             terminal: obj.terminal || false,
             background: obj.background || "",
             customIcon: obj.customIcon || "",
+            useDesktopIcon: obj.useDesktopIcon === true,
             displayName: obj.displayName || "",
             hidden: obj.hidden || false,
             tags: obj.tags || ""
@@ -299,12 +302,14 @@ QtObject {
       var bg = resolve(conf.background || "")
       var dn = conf.displayName || ""
       var ci = conf.icon || ""
+      var udi = conf.useDesktopIcon === true
       var tags = conf.tags || ""
       var hidden = !!conf.hidden
 
       if (item.background !== bg) { appModel.setProperty(i, "background", bg); anyChanged = true }
       if (item.displayName !== dn) { appModel.setProperty(i, "displayName", dn); anyChanged = true }
       if (item.customIcon !== ci) { appModel.setProperty(i, "customIcon", ci); anyChanged = true }
+      if (item.useDesktopIcon !== udi) { appModel.setProperty(i, "useDesktopIcon", udi); anyChanged = true }
       if (item.tags !== tags) { appModel.setProperty(i, "tags", tags); anyChanged = true }
       if (item.hidden !== hidden) { appModel.setProperty(i, "hidden", hidden); anyChanged = true }
     }
@@ -323,6 +328,7 @@ QtObject {
         iconPath: it.iconPath, categories: it.categories, source: it.source,
         steamAppId: it.steamAppId, terminal: it.terminal,
         background: it.background, customIcon: it.customIcon,
+        useDesktopIcon: it.useDesktopIcon,
         displayName: it.displayName, hidden: it.hidden, tags: it.tags
       }))
     }

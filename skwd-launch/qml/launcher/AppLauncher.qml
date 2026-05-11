@@ -795,14 +795,25 @@ Scope {
         border.color: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
         clip: true
 
+        readonly property bool _preferGlyph: !!model.customIcon && !model.useDesktopIcon && !model.background
+
         Image {
           anchors.fill: parent
-          source: model.background ? "file://" + model.background : (model.thumb ? "file://" + model.thumb : "")
+          source: model.background ? "file://" + model.background : (parent._preferGlyph ? "" : (model.thumb ? "file://" + model.thumb : ""))
           fillMode: model.source === "steam" || model.background ? Image.PreserveAspectCrop : Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
           asynchronous: true
           smooth: true
+        }
+
+        Text {
+          anchors.centerIn: parent
+          visible: parent._preferGlyph
+          text: model.customIcon || ""
+          font.family: Style.fontFamilyIcons
+          font.pixelSize: Math.min(parent.width, parent.height) * 0.45
+          color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.85) : Qt.rgba(1, 1, 1, 0.6)
         }
 
         Rectangle {

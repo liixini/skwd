@@ -25,10 +25,18 @@ Item {
   }
 
   width: 699
-  visible: musicPlaying
-  opacity: visible ? 1.0 : 0.0
+  visible: true
+  property bool _hovered: false
+  readonly property bool _islandActive: musicPlaying || (_hovered && Config.musicAlwaysHoverable)
+  readonly property bool _controlsVisible: _hovered && _islandActive
+  opacity: _islandActive ? 1.0 : 0.0
   Behavior on opacity {
     NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+  }
+
+  HoverHandler {
+    acceptedDevices: PointerDevice.AllDevices
+    onHoveredChanged: lyricsIsland._hovered = hovered
   }
 
 
@@ -69,6 +77,8 @@ Item {
     maximumLineCount: 1
     width: Math.min(implicitWidth, 120)
     visible: lyricsIsland.musicPlaying && Config.musicShowMeta
+    opacity: Config.musicCleanVisualizer ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
   }
 
 
@@ -94,12 +104,16 @@ Item {
     width: Math.min(implicitWidth, 120)
     horizontalAlignment: Text.AlignRight
     visible: lyricsIsland.musicPlaying && Config.musicShowMeta
+    opacity: Config.musicCleanVisualizer ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
   }
 
 
   Item {
     id: lyricContainer
     visible: Config.musicShowLyrics
+    opacity: (lyricsIsland._controlsVisible || Config.musicCleanVisualizer) ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
     anchors.centerIn: parent
     width: parent.width - lyricsIsland.diagSlant * 2 - 16 - (lyricsIsland.musicPlaying && Config.musicShowMeta ? 240 : 0)
     height: parent.height
@@ -110,7 +124,7 @@ Item {
 
     Text {
       id: lyricFallback
-      visible: !lyricsIsland.hasLyrics
+      visible: !lyricsIsland.hasLyrics && opacity > 0.01 && Config.musicShowLyricsStatus
       width: parent.width
       y: lyricContainer.centerY
       text: {
@@ -127,6 +141,20 @@ Item {
       elide: Text.ElideRight
       maximumLineCount: 1
       opacity: 1
+      Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+
+      onTextChanged: {
+        opacity = 1
+        lyricFallbackTimer.restart()
+      }
+      Component.onCompleted: if (text !== "") lyricFallbackTimer.start()
+    }
+
+    Timer {
+      id: lyricFallbackTimer
+      interval: 5000
+      repeat: false
+      onTriggered: lyricFallback.opacity = 0
     }
 
     Text {
@@ -252,6 +280,83 @@ Item {
         lyricCurrent.opacity = 0.0
         outgoingAnim.restart()
         incomingAnim.restart()
+      }
+    }
+  }
+
+
+  Row {
+    id: controlsRow
+    anchors.centerIn: parent
+    spacing: 16
+    z: 10
+    opacity: lyricsIsland._controlsVisible ? 1 : 0
+    visible: opacity > 0.01
+    Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+    property var player: lyricsIsland.activePlayer
+
+    Text {
+      id: prevBtn
+      text: "\u{F04AE}"
+      font.family: Style.fontFamilyIcons
+      font.pixelSize: 18
+      anchors.verticalCenter: parent.verticalCenter
+      color: prevMouse.containsMouse
+        ? lyricsIsland.colors.primary
+        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.85)
+      Behavior on color { ColorAnimation { duration: 120 } }
+      MouseArea {
+        id: prevMouse
+        anchors.fill: parent
+        anchors.margins: -6
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: if (controlsRow.player) controlsRow.player.previous()
+      }
+    }
+
+    Text {
+      id: playPauseBtn
+      text: (controlsRow.player && controlsRow.player.isPlaying) ? "\u{F03E4}" : "\u{F040A}"
+      font.family: Style.fontFamilyIcons
+      font.pixelSize: 22
+      anchors.verticalCenter: parent.verticalCenter
+      color: playPauseMouse.containsMouse
+        ? lyricsIsland.colors.primary
+        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.95)
+      Behavior on color { ColorAnimation { duration: 120 } }
+      MouseArea {
+        id: playPauseMouse
+        anchors.fill: parent
+        anchors.margins: -6
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          if (!controlsRow.player) return
+          if (controlsRow.player.isPlaying) controlsRow.player.pause()
+          else controlsRow.player.play()
+        }
+      }
+    }
+
+    Text {
+      id: nextBtn
+      text: "\u{F04AD}"
+      font.family: Style.fontFamilyIcons
+      font.pixelSize: 18
+      anchors.verticalCenter: parent.verticalCenter
+      color: nextMouse.containsMouse
+        ? lyricsIsland.colors.primary
+        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.85)
+      Behavior on color { ColorAnimation { duration: 120 } }
+      MouseArea {
+        id: nextMouse
+        anchors.fill: parent
+        anchors.margins: -6
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: if (controlsRow.player) controlsRow.player.next()
       }
     }
   }

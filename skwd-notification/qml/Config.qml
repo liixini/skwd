@@ -39,5 +39,9 @@ QtObject {
     readonly property int popupMaxVisible: _notif.popupMaxVisible ?? 4
     readonly property int popupWidth: _notif.popupWidth ?? 320
     readonly property int popupRightMargin: _notif.popupRightMargin ?? 16
+    readonly property int popupLeftMargin:  _notif.popupLeftMargin  ?? popupRightMargin
     readonly property int popupTopMargin: _notif.popupTopMargin ?? 12
+    readonly property string popupSide: (_notif.popupSide === "left" ? "left" : "right")
+    readonly property int historyMax: _notif.historyMax ?? 200
+    readonly property string historyPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/skwd/notifications.json"
 }

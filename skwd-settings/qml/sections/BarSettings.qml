@@ -10,11 +10,94 @@ Item {
   property string activeCategory: "widgets"
 
   readonly property var categories: [
-    { key: "widgets", label: "WIDGETS" },
-    { key: "weather", label: "WEATHER" },
-    { key: "wifi",    label: "WIFI" },
-    { key: "music",   label: "MUSIC" }
+    { key: "widgets",       label: "WIDGETS" },
+    { key: "layout",        label: "LAYOUT" },
+    { key: "weather",       label: "WEATHER" },
+    { key: "wifi",          label: "WIFI" },
+    { key: "battery",       label: "BATTERY" },
+    { key: "notifications", label: "NOTIFICATIONS" },
+    { key: "music",         label: "MUSIC" }
   ]
+
+  function _setBatteryRules(arr) { SettingsService.setPath("components.bar.battery.notify", arr) }
+  function _addBatteryRule() {
+    var arr = (Config.barBatteryNotifyRules || []).slice()
+    arr.push({ percent: 20, onDischarge: true, onCharge: false })
+    _setBatteryRules(arr)
+  }
+  function _updateBatteryRule(idx, patch) {
+    var arr = JSON.parse(JSON.stringify(Config.barBatteryNotifyRules || []))
+    if (idx < 0 || idx >= arr.length) return
+    for (var k in patch) arr[idx][k] = patch[k]
+    _setBatteryRules(arr)
+  }
+  function _removeBatteryRule(idx) {
+    var arr = (Config.barBatteryNotifyRules || []).slice()
+    if (idx < 0 || idx >= arr.length) return
+    arr.splice(idx, 1)
+    _setBatteryRules(arr)
+  }
+
+  function _saveLayout(side, arr) { SettingsService.setPath("components.bar." + side + "Layout", arr) }
+  function _resetLayout() {
+    _saveLayout("left",  Config._defaultBarLeftLayout)
+    _saveLayout("right", Config._defaultBarRightLayout)
+    SettingsService.setPath("components.bar.widgets", undefined)
+  }
+  function _move(side, fromIdx, toIdx) {
+    var src = side === "left" ? Config.barLeftLayout.slice() : Config.barRightLayout.slice()
+    if (fromIdx < 0 || fromIdx >= src.length) return
+    if (toIdx < 0 || toIdx >= src.length) return
+    if (fromIdx === toIdx) return
+    var item = src.splice(fromIdx, 1)[0]
+    src.splice(toIdx, 0, item)
+    _saveLayout(side, src)
+  }
+  function _swapSide(fromSide, idx) {
+    var src = fromSide === "left" ? Config.barLeftLayout.slice() : Config.barRightLayout.slice()
+    var dst = fromSide === "left" ? Config.barRightLayout.slice() : Config.barLeftLayout.slice()
+    if (idx < 0 || idx >= src.length) return
+    var item = src.splice(idx, 1)[0]
+    dst.push(item)
+    _saveLayout(fromSide,                          src)
+    _saveLayout(fromSide === "left" ? "right" : "left", dst)
+  }
+
+  function _missingWidgets() {
+    var all = Config.allBarWidgets || []
+    var present = (Config.barLeftLayout || []).concat(Config.barRightLayout || [])
+    var out = []
+    for (var i = 0; i < all.length; i++) if (present.indexOf(all[i]) === -1) out.push(all[i])
+    return out
+  }
+  function _addToSide(id, side) {
+    var arr = (side === "left" ? Config.barLeftLayout : Config.barRightLayout).slice()
+    if (arr.indexOf(id) !== -1) return
+    arr.push(id)
+    _saveLayout(side, arr)
+  }
+
+  function _setWidgetOverride(id, field, value) {
+    var data = JSON.parse(JSON.stringify(Config.barWidgetOverrides || {}))
+    if (typeof data[id] !== "object" || data[id] === null) data[id] = {}
+    if (value === "" || value === null || value === undefined) delete data[id][field]
+    else data[id][field] = value
+    if (Object.keys(data[id]).length === 0) delete data[id]
+    SettingsService.setPath("components.bar.widgets", data)
+  }
+
+  property string _iconPickWidget: ""
+  property string _iconPickCurrent: ""
+  function _openIconPicker(id) {
+    _iconPickWidget = id
+    _iconPickCurrent = Config.barWidgetIconOverride(id)
+    _iconPicker.visible = true
+  }
+  function _selectIcon(glyph) {
+    if (_iconPickWidget) _setWidgetOverride(_iconPickWidget, "icon", glyph)
+    _iconPicker.visible = false
+    _iconPickWidget = ""
+  }
 
   function _save(key, value) { SettingsService.setPath("components.bar." + key, value) }
 
@@ -44,6 +127,342 @@ Item {
       SettingsToggle { colors: root.colors; label: "Wifi widget";        checked: Config.barWifiEnabled;      onToggle: function(v) { SettingsService.setPath("components.bar.wifi.enabled", v) } }
       SettingsToggle { colors: root.colors; label: "Weather widget";     checked: Config.barWeatherEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.weather.enabled", v) } }
       SettingsToggle { colors: root.colors; label: "Music widget";       checked: Config.barMusicEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.music.enabled", v) } }
+      SettingsToggle { colors: root.colors; label: "Brightness widget";  checked: Config.barBrightnessEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.brightness.enabled", v) } }
+      SettingsToggle { colors: root.colors; label: "Battery widget";     checked: Config.barBatteryEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.battery.enabled", v) } }
+      SettingsToggle { colors: root.colors; label: "Notification widget";  checked: Config.barNotificationsEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.notifications.enabled", v) } }
+      SettingsToggle { colors: root.colors; label: "Mouseover reveal";   checked: Config.barMouseoverEnabled; onToggle: function(v) { root._save("mouseoverEnabled", v) } }
+    }
+
+
+    Column {
+      id: layoutSection
+      visible: root.activeCategory === "layout"
+      width: parent.width
+      spacing: 8 * Config.uiScale
+
+      Row {
+        width: parent.width
+        spacing: 8
+
+        Text {
+          text: "BAR LAYOUT"
+          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+          anchors.verticalCenter: parent.verticalCenter
+        }
+        Item { width: Math.max(0, parent.width - 200); height: 1 }
+        FilterButton {
+          colors: root.colors
+          label: "RESET"
+          skew: 8; height: 22
+          tooltip: "Restore default left/right layout"
+          anchors.verticalCenter: parent.verticalCenter
+          onClicked: root._resetLayout()
+        }
+      }
+
+      Text {
+        width: parent.width
+        text: "Reorder widgets within a side with ↑/↓, send to the other side with ←/→."
+        wrapMode: Text.WordWrap
+        font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+        color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.7) : Qt.rgba(1, 1, 1, 0.4)
+      }
+
+      Row {
+        width: parent.width
+        spacing: 12
+
+        Column {
+          id: leftCol
+          width: (parent.width - 12) / 2
+          spacing: 4
+
+          Text {
+            text: "LEFT"
+            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
+            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+          }
+
+          Repeater {
+            model: Config.barLeftLayout
+
+            delegate: Rectangle {
+              id: leftCard
+              required property int index
+              required property string modelData
+              property string overrideIcon:  Config.barWidgetIconOverride(modelData)
+              property string overrideLabel: Config.barWidgetLabelOverride(modelData)
+              property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
+              property bool customizable: modelData !== "weather"
+
+              width: leftCol.width
+              height: cardCol.implicitHeight + 12
+              radius: 4
+              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
+              border.width: 1
+              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+
+              Column {
+                id: cardCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 6
+                spacing: 4
+
+                Row {
+                  width: parent.width
+                  spacing: 6
+
+                  Text {
+                    text: leftCard.overrideIcon !== "" ? leftCard.overrideIcon : (Config.barWidgetIcons[leftCard.modelData] || "")
+                    font.family: Style.fontFamilyIcons; font.pixelSize: 16
+                    color: root.colors ? root.colors.primary : "#ffb4ab"
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                  Text {
+                    text: Config.barWidgetLabels[leftCard.modelData] || leftCard.modelData
+                    font.family: Style.fontFamily; font.pixelSize: 12
+                    color: root.colors ? root.colors.surfaceText : "#fff"
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                  Item { width: Math.max(0, parent.width - 200); height: 1 }
+                  Row {
+                    spacing: 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    FilterButton { colors: root.colors; label: "↑"; skew: 4; height: 20; onClicked: root._move("left", leftCard.index, leftCard.index - 1) }
+                    FilterButton { colors: root.colors; label: "↓"; skew: 4; height: 20; onClicked: root._move("left", leftCard.index, leftCard.index + 1) }
+                    FilterButton { colors: root.colors; label: "→"; skew: 4; height: 20; tooltip: "Send to right"; onClicked: root._swapSide("left", leftCard.index) }
+                  }
+                }
+
+                Row {
+                  width: parent.width
+                  spacing: 6
+                  visible: leftCard.customizable
+
+                  FilterButton {
+                    colors: root.colors
+                    label: "PICK"
+                    skew: 6; height: 20
+                    tooltip: "Override icon"
+                    onClicked: root._openIconPicker(leftCard.modelData)
+                  }
+                  FilterButton {
+                    colors: root.colors
+                    label: "✕"; skew: 4; height: 20
+                    tooltip: "Clear icon override"
+                    visible: leftCard.overrideIcon !== ""
+                    onClicked: root._setWidgetOverride(leftCard.modelData, "icon", "")
+                  }
+                  SettingsTextInput {
+                    colors: root.colors
+                    width: parent.width - 100
+                    label: ""
+                    value: leftCard.overrideLabel
+                    placeholder: "label override (blank = live value)"
+                    onCommit: function(v) { root._setWidgetOverride(leftCard.modelData, "label", v) }
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                }
+
+                SettingsToggle {
+                  width: parent.width
+                  colors: root.colors
+                  label: "Show only on bar mouseover"
+                  checked: leftCard.mouseover
+                  onToggle: function(v) { root._setWidgetOverride(leftCard.modelData, "mouseover", v) }
+                }
+              }
+            }
+          }
+
+          Text {
+            visible: Config.barLeftLayout.length === 0
+            text: "no widgets on this side"
+            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+            color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+          }
+        }
+
+        Column {
+          id: rightCol
+          width: (parent.width - 12) / 2
+          spacing: 4
+
+          Text {
+            text: "RIGHT"
+            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
+            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+          }
+
+          Repeater {
+            model: Config.barRightLayout
+
+            delegate: Rectangle {
+              id: rightCard
+              required property int index
+              required property string modelData
+              property string overrideIcon:  Config.barWidgetIconOverride(modelData)
+              property string overrideLabel: Config.barWidgetLabelOverride(modelData)
+              property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
+              property bool customizable: modelData !== "weather"
+
+              width: rightCol.width
+              height: rightCardCol.implicitHeight + 12
+              radius: 4
+              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
+              border.width: 1
+              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+
+              Column {
+                id: rightCardCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 6
+                spacing: 4
+
+                Row {
+                  width: parent.width
+                  spacing: 6
+
+                  Row {
+                    spacing: 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    FilterButton { colors: root.colors; label: "←"; skew: 4; height: 20; tooltip: "Send to left"; onClicked: root._swapSide("right", rightCard.index) }
+                    FilterButton { colors: root.colors; label: "↑"; skew: 4; height: 20; onClicked: root._move("right", rightCard.index, rightCard.index - 1) }
+                    FilterButton { colors: root.colors; label: "↓"; skew: 4; height: 20; onClicked: root._move("right", rightCard.index, rightCard.index + 1) }
+                  }
+                  Item { width: Math.max(0, parent.width - 200); height: 1 }
+                  Text {
+                    text: Config.barWidgetLabels[rightCard.modelData] || rightCard.modelData
+                    font.family: Style.fontFamily; font.pixelSize: 12
+                    color: root.colors ? root.colors.surfaceText : "#fff"
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                  Text {
+                    text: rightCard.overrideIcon !== "" ? rightCard.overrideIcon : (Config.barWidgetIcons[rightCard.modelData] || "")
+                    font.family: Style.fontFamilyIcons; font.pixelSize: 16
+                    color: root.colors ? root.colors.primary : "#ffb4ab"
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                }
+
+                Row {
+                  width: parent.width
+                  spacing: 6
+                  visible: rightCard.customizable
+
+                  FilterButton {
+                    colors: root.colors
+                    label: "PICK"
+                    skew: 6; height: 20
+                    tooltip: "Override icon"
+                    onClicked: root._openIconPicker(rightCard.modelData)
+                  }
+                  FilterButton {
+                    colors: root.colors
+                    label: "✕"; skew: 4; height: 20
+                    tooltip: "Clear icon override"
+                    visible: rightCard.overrideIcon !== ""
+                    onClicked: root._setWidgetOverride(rightCard.modelData, "icon", "")
+                  }
+                  SettingsTextInput {
+                    colors: root.colors
+                    width: parent.width - 100
+                    label: ""
+                    value: rightCard.overrideLabel
+                    placeholder: "label override (blank = live value)"
+                    onCommit: function(v) { root._setWidgetOverride(rightCard.modelData, "label", v) }
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                }
+
+                SettingsToggle {
+                  width: parent.width
+                  colors: root.colors
+                  label: "Show only on bar mouseover"
+                  checked: rightCard.mouseover
+                  onToggle: function(v) { root._setWidgetOverride(rightCard.modelData, "mouseover", v) }
+                }
+              }
+            }
+          }
+
+          Text {
+            visible: Config.barRightLayout.length === 0
+            text: "no widgets on this side"
+            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+            color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+          }
+        }
+      }
+
+      Column {
+        width: parent.width
+        spacing: 4
+        visible: root._missingWidgets().length > 0
+
+        Text {
+          text: "AVAILABLE"
+          font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
+          color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+        }
+
+        Flow {
+          width: parent.width
+          spacing: 6
+
+          Repeater {
+            model: root._missingWidgets()
+
+            delegate: Rectangle {
+              required property string modelData
+              radius: 4
+              height: 28 * Config.uiScale
+              width: chipRow.implicitWidth + 16
+              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
+              border.width: 1
+              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+
+              Row {
+                id: chipRow
+                anchors.fill: parent
+                anchors.leftMargin: 6
+                anchors.rightMargin: 6
+                spacing: 6
+
+                Text {
+                  text: Config.barWidgetIcons[parent.parent.modelData] || ""
+                  font.family: Style.fontFamilyIcons; font.pixelSize: 14
+                  color: root.colors ? root.colors.primary : "#ffb4ab"
+                  anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                  text: Config.barWidgetLabels[parent.parent.modelData] || parent.parent.modelData
+                  font.family: Style.fontFamily; font.pixelSize: 11
+                  color: root.colors ? root.colors.surfaceText : "#fff"
+                  anchors.verticalCenter: parent.verticalCenter
+                }
+                FilterButton {
+                  colors: root.colors
+                  label: "← LEFT"; skew: 6; height: 20
+                  onClicked: root._addToSide(parent.parent.modelData, "left")
+                  anchors.verticalCenter: parent.verticalCenter
+                }
+                FilterButton {
+                  colors: root.colors
+                  label: "RIGHT →"; skew: 6; height: 20
+                  onClicked: root._addToSide(parent.parent.modelData, "right")
+                  anchors.verticalCenter: parent.verticalCenter
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
 
@@ -337,7 +756,183 @@ Item {
       }
     }
 
-    
+
+    Column {
+      id: batterySection
+      visible: root.activeCategory === "battery"
+      width: parent.width
+      spacing: 8 * Config.uiScale
+
+      Row {
+        width: parent.width
+        spacing: 8
+
+        Text {
+          text: "BATTERY NOTIFICATIONS"
+          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+          anchors.verticalCenter: parent.verticalCenter
+        }
+      }
+
+      Text {
+        width: parent.width
+        text: "Fire a notification when the battery passes through a percentage threshold. Discharge sends when crossing down, Charge when crossing up."
+        wrapMode: Text.WordWrap
+        font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+        color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.7) : Qt.rgba(1, 1, 1, 0.4)
+      }
+
+      Repeater {
+        model: Config.barBatteryNotifyRules
+
+        delegate: Rectangle {
+          id: ruleRow
+          required property int index
+          required property var modelData
+
+          property int rulePercent:    (typeof modelData.percent === "number") ? modelData.percent : 20
+          property bool ruleDischarge: modelData.onDischarge !== false
+          property bool ruleCharge:    modelData.onCharge === true
+          property string ruleMessage: (typeof modelData.message === "string") ? modelData.message : ""
+
+          width: batterySection.width
+          height: ruleCol.implicitHeight + 14
+          radius: 4
+          color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
+          border.width: 1
+          border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+
+          Column {
+            id: ruleCol
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 7
+            spacing: 6
+
+            Row {
+              width: parent.width
+              spacing: 8
+
+              Text {
+                text: ruleRow.rulePercent + "%"
+                font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold
+                color: root.colors ? root.colors.primary : "#ffb4ab"
+                width: 50
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              Row {
+                spacing: 2
+                anchors.verticalCenter: parent.verticalCenter
+                FilterButton { colors: root.colors; label: "-"; skew: 4; height: 22; onClicked: root._updateBatteryRule(ruleRow.index, { percent: Math.max(1, ruleRow.rulePercent - 5) }) }
+                FilterButton { colors: root.colors; label: "+"; skew: 4; height: 22; onClicked: root._updateBatteryRule(ruleRow.index, { percent: Math.min(100, ruleRow.rulePercent + 5) }) }
+              }
+
+              FilterButton {
+                colors: root.colors
+                label: "DISCHARGE"
+                skew: 8; height: 22
+                isActive: ruleRow.ruleDischarge
+                tooltip: "Notify when battery drops through this %"
+                onClicked: root._updateBatteryRule(ruleRow.index, { onDischarge: !ruleRow.ruleDischarge })
+                anchors.verticalCenter: parent.verticalCenter
+              }
+              FilterButton {
+                colors: root.colors
+                label: "CHARGE"
+                skew: 8; height: 22
+                isActive: ruleRow.ruleCharge
+                tooltip: "Notify when battery rises through this % while charging"
+                onClicked: root._updateBatteryRule(ruleRow.index, { onCharge: !ruleRow.ruleCharge })
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              Item { width: Math.max(0, parent.width - 380); height: 1 }
+
+              FilterButton {
+                colors: root.colors
+                label: "DEL"
+                skew: 8; height: 22
+                onClicked: root._removeBatteryRule(ruleRow.index)
+                anchors.verticalCenter: parent.verticalCenter
+              }
+            }
+
+            SettingsTextInput {
+              colors: root.colors
+              label: ""
+              value: ruleRow.ruleMessage
+              placeholder: "Custom message (blank for default). Tokens: {percent}, {threshold}, {state}"
+              onCommit: function(v) { root._updateBatteryRule(ruleRow.index, { message: v }) }
+            }
+          }
+        }
+      }
+
+      Rectangle {
+        width: batterySection.width
+        height: 32 * Config.uiScale
+        radius: 4
+        color: addRuleMouse.containsMouse
+          ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.18)
+          : Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4)
+        border.width: 1
+        border.color: addRuleMouse.containsMouse
+          ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5)
+          : Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.2)
+        Behavior on color { ColorAnimation { duration: Style.animFast } }
+        Behavior on border.color { ColorAnimation { duration: Style.animFast } }
+
+        Text {
+          anchors.centerIn: parent
+          text: "+ ADD THRESHOLD"
+          font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
+          font.weight: Font.Bold; font.letterSpacing: 0.8
+          color: addRuleMouse.containsMouse
+            ? root.colors.primary
+            : Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.8)
+        }
+
+        MouseArea {
+          id: addRuleMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root._addBatteryRule()
+        }
+      }
+    }
+
+
+    Column {
+      visible: root.activeCategory === "notifications"
+      width: parent.width
+      spacing: 8 * Config.uiScale
+
+      Text {
+        text: "NOTIFICATION WIDGET"
+        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
+        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      }
+
+      SettingsToggle {
+        colors: root.colors
+        label: "Hide widget when empty"
+        checked: Config.barNotificationsHideWhenEmpty
+        onToggle: function(v) { SettingsService.setPath("components.bar.notifications.hideWhenEmpty", v) }
+      }
+      SettingsInput {
+        colors: root.colors
+        label: "History size"
+        value: Config.barNotificationsHistoryMax
+        min: 5; max: 500
+        onCommit: function(v) { SettingsService.setPath("components.bar.notifications.historyMax", v) }
+      }
+    }
+
+
     Column {
       visible: root.activeCategory === "music"
       width: parent.width
@@ -351,6 +946,9 @@ Item {
       SettingsToggle { colors: root.colors; label: "Auto-hide when nothing's playing"; checked: Config.barMusicAutohide; onToggle: function(v) { SettingsService.setPath("components.bar.music.autohide", v) } }
       SettingsToggle { colors: root.colors; label: "Show artist & track";              checked: Config.barMusicShowMeta;  onToggle: function(v) { SettingsService.setPath("components.bar.music.showMeta", v) } }
       SettingsToggle { colors: root.colors; label: "Show lyrics";                       checked: Config.barMusicShowLyrics; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyrics", v) } }
+      SettingsToggle { colors: root.colors; label: "Reveal controls on hover even when paused"; checked: Config.barMusicAlwaysHoverable; onToggle: function(v) { SettingsService.setPath("components.bar.music.alwaysHoverable", v) } }
+      SettingsToggle { colors: root.colors; label: "Clean visualizer (hide lyrics/track)";       checked: Config.barMusicCleanVisualizer; onToggle: function(v) { SettingsService.setPath("components.bar.music.cleanVisualizer", v) } }
+      SettingsToggle { colors: root.colors; label: "Display lyrics retrieval status";            checked: Config.barMusicShowLyricsStatus; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyricsStatus", v) } }
 
       Text {
         text: "VISUALIZER"
@@ -449,5 +1047,17 @@ Item {
       SettingsToggle { colors: root.colors; label: "Render visualizer above"; checked: Config.barMusicVisualizerTop;    onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerTop", v) } }
       SettingsToggle { colors: root.colors; label: "Render visualizer below"; checked: Config.barMusicVisualizerBottom; onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerBottom", v) } }
     }
+  }
+
+  IconPicker {
+    id: _iconPicker
+    parent: root
+    anchors.fill: parent
+    z: 200
+    visible: false
+    colors: root.colors
+    currentGlyph: root._iconPickCurrent
+    onIconSelected: function(glyph) { root._selectIcon(glyph) }
+    onCancelled: { _iconPicker.visible = false; root._iconPickWidget = "" }
   }
 }

@@ -8,14 +8,16 @@ Rectangle {
   required property var colors
   required property var clock
 
-  
+  property real contentWidth: 320
+  property string side: "right"
+
   property bool active: false
   readonly property real animatedHeight: _animatedHeight
 
   property real _targetHeight: 0
   property real _animatedHeight: _targetHeight
   Behavior on _animatedHeight {
-    NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
+    NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
   }
 
   height: _animatedHeight
@@ -48,12 +50,14 @@ Rectangle {
   
   Column {
     id: clockColumn
-    anchors.right: parent.right
-    anchors.rightMargin: 12
+    anchors.left:  root.side === "left"  ? parent.left  : undefined
+    anchors.right: root.side === "right" ? parent.right : undefined
+    anchors.leftMargin:  root.side === "left"  ? 12 : 0
+    anchors.rightMargin: root.side === "right" ? 12 : 0
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 12
     spacing: 8
-    width: parent.width - 24
+    width: root.contentWidth - 24
 
     property int monthOffset: 0
 
@@ -63,80 +67,148 @@ Rectangle {
       }
     }
 
-    opacity: root.active && root._animatedHeight > 100 ? 1 : 0
+    opacity: root.active && root._animatedHeight > (clockColumn.implicitHeight * 0.5) ? 1 : 0
     transform: Translate {
-      y: root.active && root._animatedHeight > 100 ? 0 : -15
+      y: root.active && root._animatedHeight > (clockColumn.implicitHeight * 0.5) ? 0 : -15
     }
     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
     Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
 
-    Row {
-      spacing: 8
+    Item {
+      id: header
       width: parent.width
+      height: 18
 
       Text {
+        id: prevArrow
         text: "󰁍"
         font.pixelSize: 14
         font.family: Style.fontFamilyNerdIcons
         color: root.colors.primary
+        anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         MouseArea {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
-          onClicked: clockColumn.monthOffset -= 1
+          onClicked: swap.swipe(-1)
         }
       }
 
       Text {
-        property date displayDate: {
-          let d = new Date(root.clock.date)
-          d.setMonth(d.getMonth() + clockColumn.monthOffset)
-          return d
-        }
-        text: Qt.formatDate(displayDate, "MMMM yyyy").toUpperCase()
-        color: root.colors.primary
-        font.pixelSize: 14
-        font.family: Style.fontFamily
-        font.weight: Font.DemiBold
-        anchors.verticalCenter: parent.verticalCenter
-      }
-
-      Text {
+        id: nextArrow
         text: "󰁔"
         font.pixelSize: 14
         font.family: Style.fontFamilyNerdIcons
         color: root.colors.primary
+        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         MouseArea {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
-          onClicked: clockColumn.monthOffset += 1
+          onClicked: swap.swipe(1)
         }
       }
     }
 
 
-    Row {
-      spacing: 2
-      anchors.horizontalCenter: parent.horizontalCenter
-      Repeater {
-        model: ["M", "T", "W", "T", "F", "S", "S"]
-        delegate: Text {
-          text: modelData
+    Item {
+      id: swap
+      width: parent.width
+      height: swapContent.implicitHeight
+
+      property real swapX: 0
+      property real swapOpacity: 1
+      property bool animating: false
+
+      function swipe(direction) {
+        if (animating) return
+        swapAnim.direction = direction
+        swapAnim.start()
+      }
+
+      SequentialAnimation {
+        id: swapAnim
+        property int direction: 1
+
+        ScriptAction { script: swap.animating = true }
+        ParallelAnimation {
+          NumberAnimation {
+            target: swap; property: "swapX"
+            to: -90 * swapAnim.direction
+            duration: 180
+            easing.type: Easing.InCubic
+          }
+          NumberAnimation {
+            target: swap; property: "swapOpacity"
+            to: 0
+            duration: 180
+            easing.type: Easing.InCubic
+          }
+        }
+        ScriptAction {
+          script: {
+            clockColumn.monthOffset += swapAnim.direction
+            swap.swapX = 90 * swapAnim.direction
+          }
+        }
+        ParallelAnimation {
+          NumberAnimation {
+            target: swap; property: "swapX"
+            to: 0
+            duration: 260
+            easing.type: Easing.OutCubic
+          }
+          NumberAnimation {
+            target: swap; property: "swapOpacity"
+            to: 1
+            duration: 260
+            easing.type: Easing.OutCubic
+          }
+        }
+        ScriptAction { script: swap.animating = false }
+      }
+
+      Column {
+        id: swapContent
+        width: parent.width
+        spacing: 8
+        opacity: swap.swapOpacity
+        transform: Translate { x: swap.swapX }
+
+        Text {
+          property date displayDate: {
+            let d = new Date(root.clock.date)
+            d.setMonth(d.getMonth() + clockColumn.monthOffset)
+            return d
+          }
+          text: Qt.formatDate(displayDate, "MMMM yyyy").toUpperCase()
           color: root.colors.primary
-          font.pixelSize: 11
+          font.pixelSize: 14
           font.family: Style.fontFamily
-          font.weight: Font.Medium
-          width: 28
-          horizontalAlignment: Text.AlignHCenter
-          opacity: 0.6
+          font.weight: Font.DemiBold
+          anchors.horizontalCenter: parent.horizontalCenter
         }
-      }
-    }
 
+        Row {
+          spacing: 2
+          anchors.horizontalCenter: parent.horizontalCenter
+          Repeater {
+            model: ["M", "T", "W", "T", "F", "S", "S"]
+            delegate: Text {
+              text: modelData
+              color: root.colors.primary
+              font.pixelSize: 11
+              font.family: Style.fontFamily
+              font.weight: Font.Medium
+              width: 28
+              horizontalAlignment: Text.AlignHCenter
+              opacity: 0.6
+            }
+          }
+        }
 
-    Grid {
+        Grid {
       anchors.horizontalCenter: parent.horizontalCenter
       columns: 7
       rows: 6
@@ -241,6 +313,8 @@ Rectangle {
             onClicked: {}
           }
         }
+      }
+    }
       }
     }
   }

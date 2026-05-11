@@ -1,4 +1,6 @@
 BluetoothDropdown 1.0 BluetoothDropdown.qml
+BrightnessDropdown 1.0 BrightnessDropdown.qml
+NotificationCenterDropdown 1.0 NotificationCenterDropdown.qml
 CalendarDropdown 1.0 CalendarDropdown.qml
 VolumeDropdown 1.0 VolumeDropdown.qml
 VolumeSlider 1.0 VolumeSlider.qml

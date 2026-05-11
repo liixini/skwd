@@ -6,3 +6,4 @@ SettingsTextInput 1.0 SettingsTextInput.qml
 SettingsToggle 1.0 SettingsToggle.qml
 SettingsDropdown 1.0 SettingsDropdown.qml
 AppEditorRow 1.0 AppEditorRow.qml
+IconPicker 1.0 IconPicker.qml

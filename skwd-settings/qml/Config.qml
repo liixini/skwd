@@ -13,6 +13,7 @@ QtObject {
     readonly property string configDir: Quickshell.env("SKWD_CONFIG")
         || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd"
     readonly property string configFilePath: configDir + "/data/config.json"
+    readonly property string mdiIconsPath: configDir + "/data/mdi-icons.json"
 
     readonly property string wallConfigDir: Quickshell.env("SKWD_WALL_CONFIG")
         || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd-wall"
@@ -24,6 +25,7 @@ QtObject {
     readonly property var _data: SettingsService.data ?? ({})
 
     readonly property real uiScale: _data.uiScale ?? 1.0
+    readonly property bool devMode: _data.dev === true
     readonly property string mainMonitor: _data.monitor ?? ""
     readonly property string terminal: _data.terminal ?? "kitty"
     readonly property string splashDir: _resolve(_data.paths?.splash) || (homeDir + "/appsplash")
@@ -61,6 +63,50 @@ QtObject {
     
     property var _bar: _data.components?.bar ?? {}
     readonly property bool   barEnabled:        _bar.enabled !== false
+    readonly property bool   barMouseoverEnabled: _bar.mouseoverEnabled !== false
+    readonly property bool   barBrightnessEnabled: _bar.brightness !== undefined && _bar.brightness !== false && _bar.brightness?.enabled !== false
+    readonly property bool   barBatteryEnabled:    _bar.battery !== false && _bar.battery?.enabled !== false
+    readonly property bool   barNotificationsEnabled: _bar.notifications?.enabled === true
+    readonly property bool   barNotificationsHideWhenEmpty: _bar.notifications?.hideWhenEmpty === true
+    readonly property int    barNotificationsHistoryMax: _bar.notifications?.historyMax ?? 50
+    property var _battery: _bar.battery ?? ({})
+    readonly property var    barBatteryNotifyRules: Array.isArray(_battery.notify) ? _battery.notify : []
+
+    readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
+    readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
+    readonly property var allBarWidgets: ["cpu", "gpu", "memory", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var barWidgetLabels: ({
+        "cpu": "CPU",
+        "gpu": "GPU",
+        "memory": "Memory",
+        "weather": "Weather",
+        "bluetooth": "Bluetooth",
+        "wifi": "Wi-Fi",
+        "volume": "Volume",
+        "clock": "Clock",
+        "brightness": "Brightness",
+        "battery": "Battery",
+        "notifications": "Notifications"
+    })
+    readonly property var barWidgetIcons: ({
+        "cpu":           "󰻠",
+        "gpu":           "󰢮",
+        "memory":        "󰍛",
+        "weather":       "󰖐",
+        "bluetooth":     "󰂯",
+        "wifi":          "󰤨",
+        "volume":        "󰕾",
+        "clock":         "󰥔",
+        "brightness":    "󰃠",
+        "battery":       "󰁹",
+        "notifications": "󰂚"
+    })
+    readonly property var barLeftLayout:  Array.isArray(_bar.leftLayout)  ? _bar.leftLayout.filter(s => allBarWidgets.indexOf(s) !== -1)  : _defaultBarLeftLayout
+    readonly property var barRightLayout: Array.isArray(_bar.rightLayout) ? _bar.rightLayout.filter(s => allBarWidgets.indexOf(s) !== -1) : _defaultBarRightLayout
+    readonly property var barWidgetOverrides: (typeof _bar.widgets === "object" && _bar.widgets !== null) ? _bar.widgets : ({})
+    function barWidgetIconOverride(id)  { var o = barWidgetOverrides[id]; return (o && o.icon)  ? o.icon  : "" }
+    function barWidgetLabelOverride(id) { var o = barWidgetOverrides[id]; return (o && o.label) ? o.label : "" }
+    function barWidgetMouseoverEnabled(id) { var o = barWidgetOverrides[id]; return !!(o && o.mouseover) }
     readonly property bool   barWeatherEnabled: _bar.weather !== undefined && _bar.weather !== false && _bar.weather?.enabled !== false
     readonly property string barWeatherCity:    _bar.weather?.city ?? ""
     readonly property var    barWeatherCities:  Array.isArray(_bar.weather?.cities) ? _bar.weather.cities : (_bar.weather?.city ? [_bar.weather.city] : [])
@@ -77,6 +123,9 @@ QtObject {
     readonly property bool   barMusicAutohide:  (_bar.music?.autohide !== false)
     readonly property bool   barMusicShowMeta:  (_bar.music?.showMeta !== false)
     readonly property bool   barMusicShowLyrics:(_bar.music?.showLyrics !== false)
+    readonly property bool   barMusicAlwaysHoverable: (_bar.music?.alwaysHoverable === true)
+    readonly property bool   barMusicCleanVisualizer: (_bar.music?.cleanVisualizer === true)
+    readonly property bool   barMusicShowLyricsStatus: (_bar.music?.showLyricsStatus !== false)
 
     property var _viz: _bar.music?.viz ?? ({})
     readonly property real vizAuroraMinAmp:        _viz.aurora?.minAmp        ?? 0.22
@@ -107,8 +156,21 @@ QtObject {
     readonly property int notifPopupMaxVisible: _notif.popupMaxVisible ?? 4
     readonly property int notifPopupWidth:      _notif.popupWidth ?? 320
     readonly property int notifPopupRightMargin:_notif.popupRightMargin ?? 16
+    readonly property int notifPopupLeftMargin: _notif.popupLeftMargin  ?? notifPopupRightMargin
     readonly property int notifPopupTopMargin:  _notif.popupTopMargin ?? 12
+    readonly property string notifPopupSide:    _notif.popupSide === "left" ? "left" : "right"
     readonly property string notifBuiltIn:      _notif.builtIn ?? "auto"
+
+    readonly property var powerOptions: {
+        var arr = _data.power?.options
+        return Array.isArray(arr) ? arr : _powerDefaults
+    }
+    readonly property var _powerDefaults: [
+        { label: "Lock",     icon: "󰌾", action: "lock",     enabled: true },
+        { label: "Logout",   icon: "󰍃", action: "logout",   enabled: true },
+        { label: "Reboot",   icon: "󰜉", action: "reboot",   enabled: true },
+        { label: "Poweroff", icon: "󰐥", action: "poweroff", enabled: true }
+    ]
 
     readonly property var _wallFeatures: (SettingsService.wallData && SettingsService.wallData.features) || ({})
     readonly property bool featMatugen:   _wallFeatures.matugen   !== false

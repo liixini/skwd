@@ -53,12 +53,16 @@ Column {
 
             onActiveFocusChanged: {
                 if (activeFocus && root.onFocused) root.onFocused()
+                else if (!activeFocus) text = root.value
             }
-            
-            
-            onTextEdited: {
-                if (root.onCommit) root.onCommit(text)
+
+            Connections {
+                target: root
+                function onValueChanged() {
+                    if (!inputField.activeFocus) inputField.text = root.value
+                }
             }
+
             onEditingFinished: {
                 if (root.onCommit) root.onCommit(text)
             }

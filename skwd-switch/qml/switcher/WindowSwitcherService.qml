@@ -25,6 +25,7 @@ QtObject {
     path: service.configPath
     preload: true
     watchChanges: true
+    onLoaded: service.loadAppConfig()
     onFileChanged: _appConfigFile.reload()
   }
 
@@ -104,6 +105,7 @@ QtObject {
 
   function getIconSource(appId) {
     var conf = getAppConf(appId)
+    if (conf.icon && !conf.useDesktopIcon) return ""
     if (conf.iconPath) return "file://" + conf.iconPath
     if (conf.iconName) {
       var pn = Quickshell.iconPath(conf.iconName, true)
