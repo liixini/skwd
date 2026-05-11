@@ -1,6 +1,9 @@
 # Skwd - A skewed (Quick)shell
 
 > [!IMPORTANT]
+> I just moved Skwd to a whole new architecture with a Rust backend. As such I need to rewrite the readme to reflect reality - patience please :)
+> The tl;dr is that Skwd supports Arch, Fedora & NixOS, with Arch currently being alpha tested out of those three. Will update the readme but my focus is to get the software tested - not the github presentation.
+>
 > This is my personal shell and is alpha software still under heavy development and testing. Please report issues and do not expect polished software everywhere (yet!).
 > Testing underway. Currently testing Arch Linux.
 >
