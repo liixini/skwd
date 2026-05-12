@@ -7,3 +7,13 @@ SettingsToggle 1.0 SettingsToggle.qml
 SettingsDropdown 1.0 SettingsDropdown.qml
 AppEditorRow 1.0 AppEditorRow.qml
 IconPicker 1.0 IconPicker.qml
+SettingsCard 1.0 SettingsCard.qml
+SettingsRow 1.0 SettingsRow.qml
+RowToggle 1.0 RowToggle.qml
+RowInput 1.0 RowInput.qml
+RowTextInput 1.0 RowTextInput.qml
+RowDropdown 1.0 RowDropdown.qml
+RowAction 1.0 RowAction.qml
+LauncherSlicePreview 1.0 LauncherSlicePreview.qml
+LauncherHexPreview 1.0 LauncherHexPreview.qml
+LauncherGridPreview 1.0 LauncherGridPreview.qml

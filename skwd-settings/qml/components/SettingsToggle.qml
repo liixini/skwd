@@ -23,6 +23,11 @@ Item {
 
         Shape {
             anchors.fill: parent
+            antialiasing: true
+            preferredRendererType: Shape.CurveRenderer
+            layer.enabled: true
+            layer.samples: 8
+            layer.smooth: true
             ShapePath {
                 fillColor: root.checked
                     ? (root.colors ? root.colors.primary : Style.fallbackAccent)
@@ -49,6 +54,11 @@ Item {
 
             Shape {
                 anchors.fill: parent
+                antialiasing: true
+                preferredRendererType: Shape.CurveRenderer
+                layer.enabled: true
+                layer.samples: 8
+                layer.smooth: true
                 ShapePath {
                     fillColor: root.checked
                         ? (root.colors ? root.colors.primaryText : "#000")

@@ -309,6 +309,7 @@ PanelWindow {
   }
 
   function _widgetShouldShow(id) {
+    if (Config.barWidgetDisabled(id)) return false
     if (!_widgetHasData(id)) return false
     if (id === "notifications"
         && Config.notificationsAlwaysShowIfPresent
@@ -1061,7 +1062,7 @@ PanelWindow {
         delegate: Loader {
           required property string modelData
           sourceComponent: bar._widgetComponent(modelData)
-          visible: bar._widgetHasData(modelData)
+          visible: !Config.barWidgetDisabled(modelData) && bar._widgetHasData(modelData)
           anchors.verticalCenter: parent ? parent.verticalCenter : undefined
         }
       }
@@ -1084,7 +1085,7 @@ PanelWindow {
         delegate: Loader {
           required property string modelData
           sourceComponent: bar._widgetComponent(modelData)
-          visible: bar._widgetHasData(modelData)
+          visible: !Config.barWidgetDisabled(modelData) && bar._widgetHasData(modelData)
           anchors.verticalCenter: parent ? parent.verticalCenter : undefined
         }
       }

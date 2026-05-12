@@ -37,6 +37,7 @@ PanelWindow {
     { key: "notification", label: "NOTIFICATION", sectionId: "notification" },
     { key: "bar",          label: "BAR",          sectionId: "bar" },
     { key: "power",        label: "POWER",        sectionId: "power" },
+    { key: "programs",     label: "PROGRAMS",     sectionId: "programs" },
     { key: "modules",      label: "MODULES",      sectionId: "modules" }
   ]
 
@@ -66,7 +67,7 @@ PanelWindow {
     id: panel
     anchors.centerIn: parent
     width: Math.min(window._s(820), parent.width - 80)
-    height: contentArea.height + window._s(24)
+    height: Math.min(contentArea.implicitHeight + window._s(24), parent.height - window._s(80))
 
     
     MouseArea {
@@ -82,20 +83,38 @@ PanelWindow {
     Item {
       id: contentArea
       anchors.top: parent.top
+      anchors.bottom: parent.bottom
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.topMargin: window._s(12)
+      anchors.bottomMargin: window._s(12)
       anchors.leftMargin: window._s(12)
       anchors.rightMargin: window._s(12)
-      height: tabRow.height + innerColumn.implicitHeight + window._s(36)
-
-      Behavior on height { NumberAnimation { duration: Style.animFast; easing.type: Easing.OutCubic } }
+      readonly property int implicitHeight: tabRow.height + innerColumn.implicitHeight + window._s(36)
 
       Rectangle {
         anchors.fill: parent
-        radius: 6
-        color: window.colors ? Qt.rgba(window.colors.surface.r, window.colors.surface.g, window.colors.surface.b, 0.5)
-                             : Qt.rgba(0, 0, 0, 0.3)
+        radius: 0
+        color: window.colors ? Qt.rgba(window.colors.background.r, window.colors.background.g, window.colors.background.b, 0.95)
+                             : Qt.rgba(0, 0, 0, 0.95)
+      }
+
+      Rectangle {
+        anchors.top: tabRow.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.topMargin: window._s(8)
+        anchors.leftMargin: window._s(6)
+        anchors.rightMargin: window._s(6)
+        anchors.bottomMargin: window._s(6)
+        radius: 0
+        color: "transparent"
+        border.width: 1
+        border.color: window.colors
+          ? Qt.rgba(window.colors.outline.r, window.colors.outline.g, window.colors.outline.b, 0.22)
+          : Qt.rgba(1, 1, 1, 0.12)
+        z: 5
       }
 
       Row {
@@ -124,39 +143,49 @@ PanelWindow {
         }
       }
 
-      Column {
-        id: innerColumn
+      Flickable {
+        id: scrollArea
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: tabRow.bottom
+        anchors.bottom: parent.bottom
         anchors.topMargin: window._s(10)
+        anchors.bottomMargin: window._s(4)
         anchors.leftMargin: window._s(8)
         anchors.rightMargin: window._s(8)
-        spacing: window._s(10)
+        clip: true
+        contentWidth: width
+        contentHeight: innerColumn.implicitHeight
+        boundsBehavior: Flickable.StopAtBounds
 
-        
-        Row {
-          anchors.horizontalCenter: parent.horizontalCenter
-          spacing: -8 * Config.uiScale
-          visible: sectionLoader.item && sectionLoader.item.categories && sectionLoader.item.categories.length > 1
+        Column {
+          id: innerColumn
+          width: scrollArea.width
+          spacing: window._s(10)
 
-          Repeater {
-            model: sectionLoader.item ? sectionLoader.item.categories : []
-            FilterButton {
-              colors: window.colors
-              label: modelData.label
-              skew: 8 * Config.uiScale
-              height: 24 * Config.uiScale
-              isActive: window.activeCategory === modelData.key
-              onClicked: window.activeCategory = modelData.key
+
+          Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: -8 * Config.uiScale
+            visible: sectionLoader.item && sectionLoader.item.categories && sectionLoader.item.categories.length > 1
+
+            Repeater {
+              model: sectionLoader.item ? sectionLoader.item.categories : []
+              FilterButton {
+                colors: window.colors
+                label: modelData.label
+                skew: 8 * Config.uiScale
+                height: 24 * Config.uiScale
+                isActive: window.activeCategory === modelData.key
+                onClicked: window.activeCategory = modelData.key
+              }
             }
           }
-        }
 
-        
-        Loader {
-          id: sectionLoader
-          width: parent.width
+
+          Loader {
+            id: sectionLoader
+            width: parent.width
           property string _sectionId: window._sectionData(window.activeSection).sectionId
 
           sourceComponent: {
@@ -168,6 +197,7 @@ PanelWindow {
               case "music":        return _musicComp
               case "notification": return _notifComp
               case "power":        return _powerComp
+              case "programs":     return _programsComp
               case "modules":      return _modulesComp
               case "placeholder":  return _placeholderComp
               default:             return _placeholderComp
@@ -196,8 +226,10 @@ PanelWindow {
         Component { id: _musicComp;       MusicSettings {} }
         Component { id: _notifComp;       NotificationSettings {} }
         Component { id: _powerComp;       PowerSettings {} }
+        Component { id: _programsComp;    ProgramsSettings {} }
         Component { id: _modulesComp;     ModulesSettings {} }
         Component { id: _placeholderComp; PlaceholderSection {} }
+        }
       }
     }
   }

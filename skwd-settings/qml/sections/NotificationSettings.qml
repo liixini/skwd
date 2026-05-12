@@ -24,75 +24,66 @@ Item {
     width: parent.width
     implicitHeight: childrenRect.height
 
-    
     Column {
       visible: root.activeCategory === "behavior"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "TIMING"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsInput {
+      SettingsCard {
         colors: root.colors
-        label: "Auto-dismiss after (ms)"
-        value: Config.notifExpireMs
-        min: 0; max: 60000
-        onCommit: function(v) { root._save("expireMs", v) }
+        title: "Timing"
+        RowInput {
+          colors: root.colors
+          title: "Auto-dismiss after"
+          description: "Time before a popup automatically fades, in milliseconds. 0 keeps it visible until dismissed."
+          value: Config.notifExpireMs
+          min: 0; max: 60000
+          suffix: "ms"
+          onCommit: function(v) { root._save("expireMs", v) }
+        }
       }
 
-      Text {
-        text: "STACK"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsInput {
+      SettingsCard {
         colors: root.colors
-        label: "Max popups visible"
-        value: Config.notifPopupMaxVisible
-        min: 1; max: 10
-        onCommit: function(v) { root._save("popupMaxVisible", v) }
+        title: "Stack"
+        RowInput {
+          colors: root.colors
+          title: "Max popups visible"
+          description: "How many notifications can show at once before older ones queue."
+          value: Config.notifPopupMaxVisible
+          min: 1; max: 10
+          onCommit: function(v) { root._save("popupMaxVisible", v) }
+        }
       }
     }
 
-    
     Column {
       visible: root.activeCategory === "popup"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "GEOMETRY"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      SettingsCard {
+        colors: root.colors
+        title: "Geometry"
+        RowInput { colors: root.colors; title: "Popup width";  description: "Width of each notification in pixels."; value: Config.notifPopupWidth;  min: 0; max: 9999; suffix: "px"; onCommit: function(v) { root._save("popupWidth", v) } }
+        RowInput { colors: root.colors; title: "Right margin"; description: "Distance from the right edge of the screen."; value: Config.notifPopupRightMargin; min: 0; max: 9999; suffix: "px"; onCommit: function(v) { root._save("popupRightMargin", v) } }
+        RowInput { colors: root.colors; title: "Left margin";  description: "Distance from the left edge of the screen.";  value: Config.notifPopupLeftMargin;  min: 0; max: 9999; suffix: "px"; onCommit: function(v) { root._save("popupLeftMargin", v) } }
+        RowInput { colors: root.colors; title: "Top margin";   description: "Distance from the top of the screen.";        value: Config.notifPopupTopMargin;   min: 0; max: 9999; suffix: "px"; onCommit: function(v) { root._save("popupTopMargin", v) } }
       }
-      SettingsInput { colors: root.colors; label: "Popup width";        value: Config.notifPopupWidth;       min: 200; max: 600; onCommit: function(v) { root._save("popupWidth", v) } }
-      SettingsInput { colors: root.colors; label: "Right margin";       value: Config.notifPopupRightMargin; min: 0;   max: 200; onCommit: function(v) { root._save("popupRightMargin", v) } }
-      SettingsInput { colors: root.colors; label: "Left margin";        value: Config.notifPopupLeftMargin;  min: 0;   max: 200; onCommit: function(v) { root._save("popupLeftMargin", v) } }
-      SettingsInput { colors: root.colors; label: "Top margin";         value: Config.notifPopupTopMargin;   min: 0;   max: 200; onCommit: function(v) { root._save("popupTopMargin", v) } }
 
-      Text {
-        text: "SIDE"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      Row {
-        spacing: -4
-        Repeater {
+      SettingsCard {
+        colors: root.colors
+        title: "Side"
+        RowDropdown {
+          colors: root.colors
+          title: "Pop-up side"
+          description: "Which edge of the screen notifications stack against."
+          value: Config.notifPopupSide
           model: [
-            { key: "left",  label: "Left"  },
-            { key: "right", label: "Right" }
+            { mode: "left",  label: "Left"  },
+            { mode: "right", label: "Right" }
           ]
-          FilterButton {
-            colors: root.colors
-            label: modelData.label
-            skew: 8 * Config.uiScale
-            height: 26 * Config.uiScale
-            isActive: Config.notifPopupSide === modelData.key
-            onClicked: root._save("popupSide", modelData.key)
-          }
+          onSelect: function(v) { root._save("popupSide", v) }
         }
       }
     }
@@ -101,39 +92,23 @@ Item {
     Column {
       visible: root.activeCategory === "daemon"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "BUILT-IN NOTIFICATION DAEMON"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      Row {
-        width: parent.width; spacing: -4
-        Repeater {
+      SettingsCard {
+        colors: root.colors
+        title: "Built-in notification daemon"
+        subtitle: "Restart skwd-daemon for changes to apply."
+        RowDropdown {
+          colors: root.colors
+          title: "Daemon mode"
+          value: Config.notifBuiltIn
           model: [
-            { key: "auto",   label: "Auto",   tip: "Run skwd's notification daemon only if no other one is active" },
-            { key: "always", label: "Always", tip: "Always run skwd's notification daemon (may conflict with mako/dunst/etc.)" },
-            { key: "never",  label: "Never",  tip: "Never run skwd's notification daemon (use your own)" }
+            { mode: "auto",   label: "Auto - run only if no other daemon is active" },
+            { mode: "always", label: "Always run (may conflict with mako/dunst)" },
+            { mode: "never",  label: "Never run (use your own)" }
           ]
-          FilterButton {
-            colors: root.colors
-            label: modelData.label
-            skew: 8 * Config.uiScale
-            height: 26 * Config.uiScale
-            isActive: Config.notifBuiltIn === modelData.key
-            onClicked: root._save("builtIn", modelData.key)
-          }
+          onSelect: function(v) { root._save("builtIn", v) }
         }
-      }
-
-      Text {
-        width: parent.width
-        text: "Restart skwd-daemon to apply"
-        wrapMode: Text.WordWrap
-        font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
-        color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.7) : Qt.rgba(1, 1, 1, 0.4)
       }
     }
   }

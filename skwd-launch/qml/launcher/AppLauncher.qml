@@ -82,7 +82,6 @@ Scope {
   property bool isSliceMode:  Config.displayMode === "slice"
   property bool isHexMode:    Config.displayMode === "hex"
   property bool isGridMode:   Config.displayMode === "wall"
-  property bool isMosaicMode: Config.displayMode === "mosaic"
 
   property string _lastMode: Config.displayMode
   Connections {
@@ -111,13 +110,11 @@ Scope {
   property int cardWidth: {
     if (isHexMode)    return hexGridWidth + 60
     if (isGridMode)   return _gridTotalW + 40
-    if (isMosaicMode) return Config.mosaicWidth + 40
     return 1600
   }
   property int cardHeight: {
     if (isHexMode)    return hexGridHeight + topBarHeight + 50
     if (isGridMode)   return _gridTotalH + topBarHeight + 50
-    if (isMosaicMode) return Config.mosaicHeight + topBarHeight + 50
     return sliceHeight + topBarHeight + 60
   }
 
@@ -236,18 +233,14 @@ Scope {
             anchors.verticalCenter: parent.verticalCenter
 
             Repeater {
-              model: [
-                { filter: "", icon: "󰄶", label: "All" },
-                { filter: "desktop", icon: "󰀻", label: "Apps" },
-                { filter: "game", icon: "󰊗", label: "Games" },
-                { filter: "steam", icon: "󰓓", label: "Steam" }
-              ]
+              model: Config.launchFilters
 
               Rectangle {
                 width: 32
                 height: 24
                 radius: 4
-                property bool isSelected: service.sourceFilter === modelData.filter
+                property string _filterKey: modelData.type === "all" ? "" : modelData.key
+                property bool isSelected: service.sourceFilter === _filterKey
                 property bool isHovered: sourceMouseArea.containsMouse
 
                 color: isSelected
@@ -280,7 +273,7 @@ Scope {
                     if (parent.isSelected) {
                       service.sourceFilter = ""
                     } else {
-                      service.sourceFilter = modelData.filter
+                      service.sourceFilter = parent._filterKey
                     }
                   }
                 }
@@ -865,25 +858,6 @@ Scope {
       }
     }
 
-
-    MosaicView {
-      id: mosaicView
-      visible: appLauncher.cardVisible && appLauncher.isMosaicMode
-      active: visible
-      anchors.top: cardContainer.top
-      anchors.topMargin: appLauncher.topBarHeight + 15
-      anchors.horizontalCenter: parent.horizontalCenter
-      width: Config.mosaicWidth
-      height: Config.mosaicHeight
-      colors: appLauncher.colors
-      service: service
-      onItemActivated: function(item) {
-        if (item) {
-          service.launchApp(item.exec, item.terminal, item.name)
-          appLauncher.showing = false
-        }
-      }
-    }
 
   }
 

@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Shapes
 import ".."
 import "../components"
 import "../services"
@@ -109,30 +110,27 @@ Item {
     width: parent.width
     implicitHeight: childrenRect.height
 
-    
     Column {
       visible: root.activeCategory === "widgets"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "ENABLED WIDGETS"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+      SettingsCard {
+        colors: root.colors
+        title: "Enabled widgets"
+        RowToggle { colors: root.colors; title: "Bar enabled";        checked: Config.barEnabled;          onToggle: function(v) { root._save("enabled", v) } }
+        RowToggle { colors: root.colors; title: "Calendar widget";    checked: Config.barCalendarEnabled;  onToggle: function(v) { root._save("calendar", v) } }
+        RowToggle { colors: root.colors; title: "Volume widget";      checked: Config.barVolumeEnabled;    onToggle: function(v) { root._save("volume", v) } }
+        RowToggle { colors: root.colors; title: "Bluetooth widget";   checked: Config.barBluetoothEnabled; onToggle: function(v) { root._save("bluetooth", v) } }
+        RowToggle { colors: root.colors; title: "Wifi widget";        checked: Config.barWifiEnabled;      onToggle: function(v) { SettingsService.setPath("components.bar.wifi.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Weather widget";     checked: Config.barWeatherEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.weather.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Music widget";       checked: Config.barMusicEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.music.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Brightness widget";  checked: Config.barBrightnessEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.brightness.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Battery widget";     checked: Config.barBatteryEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.battery.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Notification widget"; checked: Config.barNotificationsEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.notifications.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Skwd memory widget"; checked: Config.barQsmemEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.qsmem.enabled", v) } }
+        RowToggle { colors: root.colors; title: "Mouseover reveal";   description: "Hide auto-hideable widgets until you hover the bar."; checked: Config.barMouseoverEnabled; onToggle: function(v) { root._save("mouseoverEnabled", v) } }
       }
-
-      SettingsToggle { colors: root.colors; label: "Bar enabled";        checked: Config.barEnabled;          onToggle: function(v) { root._save("enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Calendar widget";    checked: Config.barCalendarEnabled;  onToggle: function(v) { root._save("calendar", v) } }
-      SettingsToggle { colors: root.colors; label: "Volume widget";      checked: Config.barVolumeEnabled;    onToggle: function(v) { root._save("volume", v) } }
-      SettingsToggle { colors: root.colors; label: "Bluetooth widget";   checked: Config.barBluetoothEnabled; onToggle: function(v) { root._save("bluetooth", v) } }
-      SettingsToggle { colors: root.colors; label: "Wifi widget";        checked: Config.barWifiEnabled;      onToggle: function(v) { SettingsService.setPath("components.bar.wifi.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Weather widget";     checked: Config.barWeatherEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.weather.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Music widget";       checked: Config.barMusicEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.music.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Brightness widget";  checked: Config.barBrightnessEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.brightness.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Battery widget";     checked: Config.barBatteryEnabled;   onToggle: function(v) { SettingsService.setPath("components.bar.battery.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Notification widget";  checked: Config.barNotificationsEnabled; onToggle: function(v) { SettingsService.setPath("components.bar.notifications.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Skwd memory widget";   checked: Config.barQsmemEnabled;     onToggle: function(v) { SettingsService.setPath("components.bar.qsmem.enabled", v) } }
-      SettingsToggle { colors: root.colors; label: "Mouseover reveal";   checked: Config.barMouseoverEnabled; onToggle: function(v) { root._save("mouseoverEnabled", v) } }
     }
 
 
@@ -140,305 +138,397 @@ Item {
       id: layoutSection
       visible: root.activeCategory === "layout"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "STYLE"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      SettingsDropdown {
+      SettingsCard {
         colors: root.colors
-        label: "Bar style"
-        value: Config.barStyle
-        model: [
-          { mode: "classic", label: "Parallelogram - split parallelograms at the edges" },
-          { mode: "pill",    label: "Floating pill - one rounded bar" }
-        ]
-        onSelect: function(v) { SettingsService.setPath("components.bar.style", v) }
-      }
-
-      Column {
-        visible: Config.barStyle === "pill"
-        width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Pill side margin (px)"; description: "Space between the pill and the screen edges. Range: 0 - 64."; value: Config.barPillSideMargin; min: 0; max: 64; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.pillSideMargin", v) } }
-        SettingsInput { colors: root.colors; label: "Pill top margin (px)";  description: "Space between the pill and the top of the screen. Range: 0 - 32."; value: Config.barPillTopMargin;  min: 0; max: 32; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.pillTopMargin", v) } }
-      }
-
-      Item { width: 1; height: 4 * Config.uiScale }
-
-      Row {
-        width: parent.width
-        spacing: 8
-
-        Text {
-          text: "BAR LAYOUT"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-          anchors.verticalCenter: parent.verticalCenter
+        title: "Style"
+        RowDropdown {
+          colors: root.colors
+          title: "Bar style"
+          description: "Parallelogram is the classic split look; pill is one rounded floating bar."
+          value: Config.barStyle
+          model: [
+            { mode: "classic", label: "Parallelogram - split parallelograms at the edges" },
+            { mode: "pill",    label: "Floating pill - one rounded bar" }
+          ]
+          onSelect: function(v) { SettingsService.setPath("components.bar.style", v) }
         }
-        Item { width: Math.max(0, parent.width - 200); height: 1 }
-        FilterButton {
+        RowInput {
+          colors: root.colors
+          visible: Config.barStyle === "pill"
+          title: "Pill side margin"
+          description: "Space between the pill and the screen edges. Range: 0 - 64."
+          value: Config.barPillSideMargin
+          min: 0; max: 64
+          suffix: "px"
+          onCommit: function(v) { SettingsService.setPath("components.bar.pillSideMargin", v) }
+        }
+        RowInput {
+          colors: root.colors
+          visible: Config.barStyle === "pill"
+          title: "Pill top margin"
+          description: "Space between the pill and the top of the screen. Range: 0 - 32."
+          value: Config.barPillTopMargin
+          min: 0; max: 32
+          suffix: "px"
+          onCommit: function(v) { SettingsService.setPath("components.bar.pillTopMargin", v) }
+        }
+      }
+
+      SettingsCard {
+        colors: root.colors
+        title: "Bar layout"
+        subtitle: "Reorder widgets within a side with ↑/↓, send to the other side with ←/→."
+        titleAction: FilterButton {
           colors: root.colors
           label: "RESET"
           skew: 8; height: 22
           tooltip: "Restore default left/right layout"
-          anchors.verticalCenter: parent.verticalCenter
           onClicked: root._resetLayout()
         }
-      }
 
-      Text {
-        width: parent.width
-        text: "Reorder widgets within a side with ↑/↓, send to the other side with ←/→."
-        wrapMode: Text.WordWrap
-        font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
-        color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.7) : Qt.rgba(1, 1, 1, 0.4)
-      }
+        Row {
+          width: parent.width
+          spacing: 12
 
-      Row {
-        width: parent.width
-        spacing: 12
+          Column {
+            id: leftCol
+            width: (parent.width - 12) / 2
+            spacing: 6
 
-        Column {
-          id: leftCol
-          width: (parent.width - 12) / 2
-          spacing: 4
+            Text {
+              text: "LEFT"
+              font.family: Style.fontFamily; font.pixelSize: 10 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 0.8
+              color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.4)
+            }
 
-          Text {
-            text: "LEFT"
-            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
-            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
-          }
+            Repeater {
+              model: Config.barLeftLayout
 
-          Repeater {
-            model: Config.barLeftLayout
+              delegate: Item {
+                id: leftCard
+                required property int index
+                required property string modelData
+                property string overrideIcon:  Config.barWidgetIconOverride(modelData)
+                property string overrideLabel: Config.barWidgetLabelOverride(modelData)
+                property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
+                property bool disabled:        Config.barWidgetDisabledOverride(modelData)
+                property bool customizable: modelData !== "weather"
+                property bool _expanded: false
+                readonly property int _ch: 6
 
-            delegate: Rectangle {
-              id: leftCard
-              required property int index
-              required property string modelData
-              property string overrideIcon:  Config.barWidgetIconOverride(modelData)
-              property string overrideLabel: Config.barWidgetLabelOverride(modelData)
-              property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
-              property bool customizable: modelData !== "weather"
+                width: leftCol.width
+                height: cardCol.implicitHeight + 10
+                opacity: leftCard.disabled ? 0.45 : 1.0
+                Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-              width: leftCol.width
-              height: cardCol.implicitHeight + 12
-              radius: 4
-              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
-              border.width: 1
-              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
-
-              Column {
-                id: cardCol
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 6
-                spacing: 4
-
-                Row {
-                  width: parent.width
-                  spacing: 6
-
-                  Text {
-                    text: leftCard.overrideIcon !== "" ? leftCard.overrideIcon : (Config.barWidgetIcons[leftCard.modelData] || "")
-                    font.family: Style.fontFamilyIcons; font.pixelSize: 16
-                    color: root.colors ? root.colors.primary : "#ffb4ab"
-                    anchors.verticalCenter: parent.verticalCenter
+                Shape {
+                  anchors.fill: parent
+                  antialiasing: true
+                  preferredRendererType: Shape.CurveRenderer
+                  layer.enabled: true
+                  layer.samples: 4
+                  layer.smooth: true
+                  ShapePath {
+                    fillColor: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.55) : Qt.rgba(0.1, 0.12, 0.18, 0.55)
+                    strokeColor: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+                    strokeWidth: 1
+                    startX: leftCard._ch; startY: 0
+                    PathLine { x: leftCard.width;                y: 0 }
+                    PathLine { x: leftCard.width;                y: leftCard.height - leftCard._ch }
+                    PathLine { x: leftCard.width - leftCard._ch; y: leftCard.height }
+                    PathLine { x: 0;                              y: leftCard.height }
+                    PathLine { x: 0;                              y: leftCard._ch }
+                    PathLine { x: leftCard._ch;                   y: 0 }
                   }
-                  Text {
-                    text: Config.barWidgetLabels[leftCard.modelData] || leftCard.modelData
-                    font.family: Style.fontFamily; font.pixelSize: 12
-                    color: root.colors ? root.colors.surfaceText : "#fff"
-                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Column {
+                  id: cardCol
+                  anchors.left: parent.left
+                  anchors.right: parent.right
+                  anchors.top: parent.top
+                  anchors.leftMargin: 10
+                  anchors.rightMargin: 12
+                  anchors.topMargin: 5
+                  spacing: 5
+
+                  Item {
+                    width: parent.width
+                    height: 20
+
+                    Text {
+                      id: leftCardIcon
+                      anchors.left: parent.left
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: leftCard.overrideIcon !== "" ? leftCard.overrideIcon : (Config.barWidgetIcons[leftCard.modelData] || "")
+                      font.family: Style.fontFamilyIcons; font.pixelSize: 14
+                      color: root.colors ? root.colors.primary : "#ffb4ab"
+                    }
+                    Text {
+                      anchors.left: leftCardIcon.right
+                      anchors.right: leftActions.left
+                      anchors.leftMargin: 6
+                      anchors.rightMargin: 8
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: leftCard.overrideLabel !== "" ? leftCard.overrideLabel : (Config.barWidgetLabels[leftCard.modelData] || leftCard.modelData)
+                      font.family: Style.fontFamily; font.pixelSize: 11
+                      color: root.colors ? root.colors.surfaceText : "#fff"
+                      elide: Text.ElideRight
+                    }
+                    Row {
+                      id: leftActions
+                      anchors.right: parent.right
+                      anchors.verticalCenter: parent.verticalCenter
+                      spacing: 2
+                      FilterButton {
+                        colors: root.colors
+                        label: "D"
+                        width: 26; skew: 4; height: 18
+                        isActive: leftCard.disabled
+                        tooltip: leftCard.disabled ? "Disabled - widget is hidden from the bar" : "Disable: hide widget from the bar"
+                        onClicked: root._setWidgetOverride(leftCard.modelData, "disabled", !leftCard.disabled)
+                      }
+                      FilterButton {
+                        colors: root.colors
+                        label: "H"
+                        width: 26; skew: 4; height: 18
+                        isActive: leftCard.mouseover
+                        tooltip: leftCard.mouseover ? "Hover-only: shown only on bar hover" : "Always shown"
+                        onClicked: root._setWidgetOverride(leftCard.modelData, "mouseover", !leftCard.mouseover)
+                      }
+                      FilterButton { colors: root.colors; label: "↑"; width: 26; skew: 4; height: 18; onClicked: root._move("left", leftCard.index, leftCard.index - 1) }
+                      FilterButton { colors: root.colors; label: "↓"; width: 26; skew: 4; height: 18; onClicked: root._move("left", leftCard.index, leftCard.index + 1) }
+                      FilterButton { colors: root.colors; label: "→"; width: 26; skew: 4; height: 18; tooltip: "Send to right"; onClicked: root._swapSide("left", leftCard.index) }
+                      FilterButton {
+                        colors: root.colors
+                        opacity: leftCard.customizable ? 1.0 : 0.0
+                        enabled: leftCard.customizable
+                        label: leftCard._expanded ? "−" : "+"
+                        width: 26; skew: 4; height: 18
+                        tooltip: leftCard._expanded ? "Hide overrides" : "Override icon and label"
+                        onClicked: leftCard._expanded = !leftCard._expanded
+                      }
+                    }
                   }
-                  Item { width: Math.max(0, parent.width - 200); height: 1 }
+
                   Row {
-                    spacing: 2
-                    anchors.verticalCenter: parent.verticalCenter
-                    FilterButton { colors: root.colors; label: "↑"; skew: 4; height: 20; onClicked: root._move("left", leftCard.index, leftCard.index - 1) }
-                    FilterButton { colors: root.colors; label: "↓"; skew: 4; height: 20; onClicked: root._move("left", leftCard.index, leftCard.index + 1) }
-                    FilterButton { colors: root.colors; label: "→"; skew: 4; height: 20; tooltip: "Send to right"; onClicked: root._swapSide("left", leftCard.index) }
-                  }
-                }
+                    visible: leftCard._expanded && leftCard.customizable
+                    width: parent.width
+                    spacing: 5
 
-                Row {
-                  width: parent.width
-                  spacing: 6
-                  visible: leftCard.customizable
-
-                  FilterButton {
-                    colors: root.colors
-                    label: "PICK"
-                    skew: 6; height: 20
-                    tooltip: "Override icon"
-                    onClicked: root._openIconPicker(leftCard.modelData)
+                    FilterButton {
+                      colors: root.colors
+                      label: "PICK"
+                      width: 60; skew: 6; height: 20
+                      tooltip: "Choose icon override"
+                      onClicked: root._openIconPicker(leftCard.modelData)
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
+                    FilterButton {
+                      colors: root.colors
+                      label: "✕"
+                      width: 26; skew: 4; height: 20
+                      tooltip: "Clear icon override"
+                      visible: leftCard.overrideIcon !== ""
+                      onClicked: root._setWidgetOverride(leftCard.modelData, "icon", "")
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
+                    SettingsTextInput {
+                      colors: root.colors
+                      width: parent.width - (leftCard.overrideIcon !== "" ? 100 : 70)
+                      label: ""
+                      value: leftCard.overrideLabel
+                      placeholder: "custom label"
+                      onCommit: function(v) { root._setWidgetOverride(leftCard.modelData, "label", v) }
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
                   }
-                  FilterButton {
-                    colors: root.colors
-                    label: "✕"; skew: 4; height: 20
-                    tooltip: "Clear icon override"
-                    visible: leftCard.overrideIcon !== ""
-                    onClicked: root._setWidgetOverride(leftCard.modelData, "icon", "")
-                  }
-                  SettingsTextInput {
-                    colors: root.colors
-                    width: parent.width - 100
-                    label: ""
-                    value: leftCard.overrideLabel
-                    placeholder: "label override (blank = live value)"
-                    onCommit: function(v) { root._setWidgetOverride(leftCard.modelData, "label", v) }
-                    anchors.verticalCenter: parent.verticalCenter
-                  }
-                }
-
-                SettingsToggle {
-                  width: parent.width
-                  colors: root.colors
-                  label: "Show only on bar mouseover"
-                  checked: leftCard.mouseover
-                  onToggle: function(v) { root._setWidgetOverride(leftCard.modelData, "mouseover", v) }
                 }
               }
             }
-          }
 
-          Text {
-            visible: Config.barLeftLayout.length === 0
-            text: "no widgets on this side"
-            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
-            color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
-          }
-        }
-
-        Column {
-          id: rightCol
-          width: (parent.width - 12) / 2
-          spacing: 4
-
-          Text {
-            text: "RIGHT"
-            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
-            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
-          }
-
-          Repeater {
-            model: Config.barRightLayout
-
-            delegate: Rectangle {
-              id: rightCard
-              required property int index
-              required property string modelData
-              property string overrideIcon:  Config.barWidgetIconOverride(modelData)
-              property string overrideLabel: Config.barWidgetLabelOverride(modelData)
-              property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
-              property bool customizable: modelData !== "weather"
-
-              width: rightCol.width
-              height: rightCardCol.implicitHeight + 12
-              radius: 4
-              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
-              border.width: 1
-              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
-
-              Column {
-                id: rightCardCol
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 6
-                spacing: 4
-
-                Row {
-                  width: parent.width
-                  spacing: 6
-
-                  Row {
-                    spacing: 2
-                    anchors.verticalCenter: parent.verticalCenter
-                    FilterButton { colors: root.colors; label: "←"; skew: 4; height: 20; tooltip: "Send to left"; onClicked: root._swapSide("right", rightCard.index) }
-                    FilterButton { colors: root.colors; label: "↑"; skew: 4; height: 20; onClicked: root._move("right", rightCard.index, rightCard.index - 1) }
-                    FilterButton { colors: root.colors; label: "↓"; skew: 4; height: 20; onClicked: root._move("right", rightCard.index, rightCard.index + 1) }
-                  }
-                  Item { width: Math.max(0, parent.width - 200); height: 1 }
-                  Text {
-                    text: Config.barWidgetLabels[rightCard.modelData] || rightCard.modelData
-                    font.family: Style.fontFamily; font.pixelSize: 12
-                    color: root.colors ? root.colors.surfaceText : "#fff"
-                    anchors.verticalCenter: parent.verticalCenter
-                  }
-                  Text {
-                    text: rightCard.overrideIcon !== "" ? rightCard.overrideIcon : (Config.barWidgetIcons[rightCard.modelData] || "")
-                    font.family: Style.fontFamilyIcons; font.pixelSize: 16
-                    color: root.colors ? root.colors.primary : "#ffb4ab"
-                    anchors.verticalCenter: parent.verticalCenter
-                  }
-                }
-
-                Row {
-                  width: parent.width
-                  spacing: 6
-                  visible: rightCard.customizable
-
-                  FilterButton {
-                    colors: root.colors
-                    label: "PICK"
-                    skew: 6; height: 20
-                    tooltip: "Override icon"
-                    onClicked: root._openIconPicker(rightCard.modelData)
-                  }
-                  FilterButton {
-                    colors: root.colors
-                    label: "✕"; skew: 4; height: 20
-                    tooltip: "Clear icon override"
-                    visible: rightCard.overrideIcon !== ""
-                    onClicked: root._setWidgetOverride(rightCard.modelData, "icon", "")
-                  }
-                  SettingsTextInput {
-                    colors: root.colors
-                    width: parent.width - 100
-                    label: ""
-                    value: rightCard.overrideLabel
-                    placeholder: "label override (blank = live value)"
-                    onCommit: function(v) { root._setWidgetOverride(rightCard.modelData, "label", v) }
-                    anchors.verticalCenter: parent.verticalCenter
-                  }
-                }
-
-                SettingsToggle {
-                  width: parent.width
-                  colors: root.colors
-                  label: "Show only on bar mouseover"
-                  checked: rightCard.mouseover
-                  onToggle: function(v) { root._setWidgetOverride(rightCard.modelData, "mouseover", v) }
-                }
-              }
+            Text {
+              visible: Config.barLeftLayout.length === 0
+              text: "no widgets on this side"
+              font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+              color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
             }
           }
 
-          Text {
-            visible: Config.barRightLayout.length === 0
-            text: "no widgets on this side"
-            font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
-            color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+          Column {
+            id: rightCol
+            width: (parent.width - 12) / 2
+            spacing: 6
+
+            Text {
+              text: "RIGHT"
+              font.family: Style.fontFamily; font.pixelSize: 10 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 0.8
+              color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.4)
+            }
+
+            Repeater {
+              model: Config.barRightLayout
+
+              delegate: Item {
+                id: rightCard
+                required property int index
+                required property string modelData
+                property string overrideIcon:  Config.barWidgetIconOverride(modelData)
+                property string overrideLabel: Config.barWidgetLabelOverride(modelData)
+                property bool mouseover:       Config.barWidgetMouseoverEnabled(modelData)
+                property bool disabled:        Config.barWidgetDisabledOverride(modelData)
+                property bool customizable: modelData !== "weather"
+                property bool _expanded: false
+                readonly property int _ch: 6
+
+                width: rightCol.width
+                height: rightCardCol.implicitHeight + 10
+                opacity: rightCard.disabled ? 0.45 : 1.0
+                Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+
+                Shape {
+                  anchors.fill: parent
+                  antialiasing: true
+                  preferredRendererType: Shape.CurveRenderer
+                  layer.enabled: true
+                  layer.samples: 4
+                  layer.smooth: true
+                  ShapePath {
+                    fillColor: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.55) : Qt.rgba(0.1, 0.12, 0.18, 0.55)
+                    strokeColor: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+                    strokeWidth: 1
+                    startX: rightCard._ch; startY: 0
+                    PathLine { x: rightCard.width;                 y: 0 }
+                    PathLine { x: rightCard.width;                 y: rightCard.height - rightCard._ch }
+                    PathLine { x: rightCard.width - rightCard._ch; y: rightCard.height }
+                    PathLine { x: 0;                                y: rightCard.height }
+                    PathLine { x: 0;                                y: rightCard._ch }
+                    PathLine { x: rightCard._ch;                    y: 0 }
+                  }
+                }
+
+                Column {
+                  id: rightCardCol
+                  anchors.left: parent.left
+                  anchors.right: parent.right
+                  anchors.top: parent.top
+                  anchors.leftMargin: 10
+                  anchors.rightMargin: 12
+                  anchors.topMargin: 5
+                  spacing: 5
+
+                  Item {
+                    width: parent.width
+                    height: 20
+
+                    Text {
+                      id: rightCardIcon
+                      anchors.left: parent.left
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: rightCard.overrideIcon !== "" ? rightCard.overrideIcon : (Config.barWidgetIcons[rightCard.modelData] || "")
+                      font.family: Style.fontFamilyIcons; font.pixelSize: 14
+                      color: root.colors ? root.colors.primary : "#ffb4ab"
+                    }
+                    Text {
+                      anchors.left: rightCardIcon.right
+                      anchors.right: rightActions.left
+                      anchors.leftMargin: 6
+                      anchors.rightMargin: 8
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: rightCard.overrideLabel !== "" ? rightCard.overrideLabel : (Config.barWidgetLabels[rightCard.modelData] || rightCard.modelData)
+                      font.family: Style.fontFamily; font.pixelSize: 11
+                      color: root.colors ? root.colors.surfaceText : "#fff"
+                      elide: Text.ElideRight
+                    }
+                    Row {
+                      id: rightActions
+                      anchors.right: parent.right
+                      anchors.verticalCenter: parent.verticalCenter
+                      spacing: 2
+                      FilterButton {
+                        colors: root.colors
+                        label: "D"
+                        width: 26; skew: 4; height: 18
+                        isActive: rightCard.disabled
+                        tooltip: rightCard.disabled ? "Disabled - widget is hidden from the bar" : "Disable: hide widget from the bar"
+                        onClicked: root._setWidgetOverride(rightCard.modelData, "disabled", !rightCard.disabled)
+                      }
+                      FilterButton {
+                        colors: root.colors
+                        label: "H"
+                        width: 26; skew: 4; height: 18
+                        isActive: rightCard.mouseover
+                        tooltip: rightCard.mouseover ? "Hover-only: shown only on bar hover" : "Always shown"
+                        onClicked: root._setWidgetOverride(rightCard.modelData, "mouseover", !rightCard.mouseover)
+                      }
+                      FilterButton { colors: root.colors; label: "↑"; width: 26; skew: 4; height: 18; onClicked: root._move("right", rightCard.index, rightCard.index - 1) }
+                      FilterButton { colors: root.colors; label: "↓"; width: 26; skew: 4; height: 18; onClicked: root._move("right", rightCard.index, rightCard.index + 1) }
+                      FilterButton { colors: root.colors; label: "←"; width: 26; skew: 4; height: 18; tooltip: "Send to left"; onClicked: root._swapSide("right", rightCard.index) }
+                      FilterButton {
+                        colors: root.colors
+                        opacity: rightCard.customizable ? 1.0 : 0.0
+                        enabled: rightCard.customizable
+                        label: rightCard._expanded ? "−" : "+"
+                        width: 26; skew: 4; height: 18
+                        tooltip: rightCard._expanded ? "Hide overrides" : "Override icon and label"
+                        onClicked: rightCard._expanded = !rightCard._expanded
+                      }
+                    }
+                  }
+
+                  Row {
+                    visible: rightCard._expanded && rightCard.customizable
+                    width: parent.width
+                    spacing: 5
+
+                    FilterButton {
+                      colors: root.colors
+                      label: "PICK"
+                      width: 60; skew: 6; height: 20
+                      tooltip: "Choose icon override"
+                      onClicked: root._openIconPicker(rightCard.modelData)
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
+                    FilterButton {
+                      colors: root.colors
+                      label: "✕"
+                      width: 26; skew: 4; height: 20
+                      tooltip: "Clear icon override"
+                      visible: rightCard.overrideIcon !== ""
+                      onClicked: root._setWidgetOverride(rightCard.modelData, "icon", "")
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
+                    SettingsTextInput {
+                      colors: root.colors
+                      width: parent.width - (rightCard.overrideIcon !== "" ? 100 : 70)
+                      label: ""
+                      value: rightCard.overrideLabel
+                      placeholder: "custom label"
+                      onCommit: function(v) { root._setWidgetOverride(rightCard.modelData, "label", v) }
+                      anchors.verticalCenter: parent.verticalCenter
+                    }
+                  }
+                }
+              }
+            }
+
+            Text {
+              visible: Config.barRightLayout.length === 0
+              text: "no widgets on this side"
+              font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.italic: true
+              color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+            }
           }
         }
       }
 
-      Column {
-        width: parent.width
-        spacing: 4
+      SettingsCard {
         visible: root._missingWidgets().length > 0
-
-        Text {
-          text: "AVAILABLE"
-          font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
-          color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
-        }
+        colors: root.colors
+        title: "Available widgets"
+        subtitle: "Widgets not currently placed on the bar - send to a side to add them."
 
         Flow {
           width: parent.width
@@ -447,30 +537,49 @@ Item {
           Repeater {
             model: root._missingWidgets()
 
-            delegate: Rectangle {
+            delegate: Item {
+              id: chipItem
               required property string modelData
-              radius: 4
+              readonly property int _ch: 6
               height: 28 * Config.uiScale
               width: chipRow.implicitWidth + 16
-              color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
-              border.width: 1
-              border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+
+              Shape {
+                anchors.fill: parent
+                antialiasing: true
+                preferredRendererType: Shape.CurveRenderer
+                layer.enabled: true
+                layer.samples: 4
+                layer.smooth: true
+                ShapePath {
+                  fillColor: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.55) : Qt.rgba(0.1, 0.12, 0.18, 0.55)
+                  strokeColor: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+                  strokeWidth: 1
+                  startX: chipItem._ch; startY: 0
+                  PathLine { x: chipItem.width;                y: 0 }
+                  PathLine { x: chipItem.width;                y: chipItem.height - chipItem._ch }
+                  PathLine { x: chipItem.width - chipItem._ch; y: chipItem.height }
+                  PathLine { x: 0;                              y: chipItem.height }
+                  PathLine { x: 0;                              y: chipItem._ch }
+                  PathLine { x: chipItem._ch;                   y: 0 }
+                }
+              }
 
               Row {
                 id: chipRow
                 anchors.fill: parent
-                anchors.leftMargin: 6
-                anchors.rightMargin: 6
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
                 spacing: 6
 
                 Text {
-                  text: Config.barWidgetIcons[parent.parent.modelData] || ""
+                  text: Config.barWidgetIcons[chipItem.modelData] || ""
                   font.family: Style.fontFamilyIcons; font.pixelSize: 14
                   color: root.colors ? root.colors.primary : "#ffb4ab"
                   anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                  text: Config.barWidgetLabels[parent.parent.modelData] || parent.parent.modelData
+                  text: Config.barWidgetLabels[chipItem.modelData] || chipItem.modelData
                   font.family: Style.fontFamily; font.pixelSize: 11
                   color: root.colors ? root.colors.surfaceText : "#fff"
                   anchors.verticalCenter: parent.verticalCenter
@@ -478,13 +587,13 @@ Item {
                 FilterButton {
                   colors: root.colors
                   label: "← LEFT"; skew: 6; height: 20
-                  onClicked: root._addToSide(parent.parent.modelData, "left")
+                  onClicked: root._addToSide(chipItem.modelData, "left")
                   anchors.verticalCenter: parent.verticalCenter
                 }
                 FilterButton {
                   colors: root.colors
                   label: "RIGHT →"; skew: 6; height: 20
-                  onClicked: root._addToSide(parent.parent.modelData, "right")
+                  onClicked: root._addToSide(chipItem.modelData, "right")
                   anchors.verticalCenter: parent.verticalCenter
                 }
               }
@@ -499,7 +608,7 @@ Item {
       id: weatherSection
       visible: root.activeCategory === "weather"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
       function saveCities(arr, def) {
         SettingsService.setPath("components.bar.weather.cities", arr)
@@ -538,12 +647,7 @@ Item {
         weatherSection.saveCities(arr)
       }
 
-      Text {
-        text: "WEATHER"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
+      SectionTitle { text: "WEATHER"; colors: root.colors }
       Text {
         width: parent.width
         text: "Add cities to flip through in the bar dropdown. Heart one as the default - that's the city shown on startup."
@@ -765,23 +869,23 @@ Item {
       }
     }
 
-    
+
     Column {
       visible: root.activeCategory === "wifi"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "WIFI"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsTextInput {
+      SettingsCard {
         colors: root.colors
-        label: "Linux interface name"
-        value: Config.barWifiInterface
-        placeholder: "e.g. wlan0 — find yours with `iwctl station list`"
-        onCommit: function(v) { SettingsService.setPath("components.bar.wifi.interface", v) }
+        title: "Wi-Fi"
+        RowTextInput {
+          colors: root.colors
+          title: "Linux interface name"
+          description: "Network interface used by the wifi widget. Find yours with `iwctl station list`."
+          value: Config.barWifiInterface
+          placeholder: "wlan0"
+          onCommit: function(v) { SettingsService.setPath("components.bar.wifi.interface", v) }
+        }
       }
     }
 
@@ -790,20 +894,9 @@ Item {
       id: batterySection
       visible: root.activeCategory === "battery"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Row {
-        width: parent.width
-        spacing: 8
-
-        Text {
-          text: "BATTERY NOTIFICATIONS"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-          anchors.verticalCenter: parent.verticalCenter
-        }
-      }
-
+      SectionTitle { text: "BATTERY NOTIFICATIONS"; colors: root.colors }
       Text {
         width: parent.width
         text: "Fire a notification when the battery passes through a percentage threshold. Discharge sends when crossing down, Charge when crossing up."
@@ -827,7 +920,7 @@ Item {
 
           width: batterySection.width
           height: ruleCol.implicitHeight + 14
-          radius: 4
+          radius: 8
           color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4)
           border.width: 1
           border.color: root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
@@ -903,7 +996,7 @@ Item {
       Rectangle {
         width: batterySection.width
         height: 32 * Config.uiScale
-        radius: 4
+        radius: 8
         color: addRuleMouse.containsMouse
           ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.18)
           : Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4)
@@ -938,32 +1031,33 @@ Item {
     Column {
       visible: root.activeCategory === "notifications"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "NOTIFICATION WIDGET"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      SettingsToggle {
+      SettingsCard {
         colors: root.colors
-        label: "Hide widget when empty"
-        checked: Config.barNotificationsHideWhenEmpty
-        onToggle: function(v) { SettingsService.setPath("components.bar.notifications.hideWhenEmpty", v) }
-      }
-      SettingsToggle {
-        colors: root.colors
-        label: "Always show if notifications present"
-        checked: Config.barNotificationsAlwaysShowIfPresent
-        onToggle: function(v) { SettingsService.setPath("components.bar.notifications.alwaysShowIfPresent", v) }
-      }
-      SettingsInput {
-        colors: root.colors
-        label: "History size"
-        value: Config.barNotificationsHistoryMax
-        min: 5; max: 500
-        onCommit: function(v) { SettingsService.setPath("components.bar.notifications.historyMax", v) }
+        title: "Notification widget"
+        RowToggle {
+          colors: root.colors
+          title: "Hide when empty"
+          description: "Collapse the widget entirely if no notifications are present."
+          checked: Config.barNotificationsHideWhenEmpty
+          onToggle: function(v) { SettingsService.setPath("components.bar.notifications.hideWhenEmpty", v) }
+        }
+        RowToggle {
+          colors: root.colors
+          title: "Always show if notifications present"
+          description: "Override mouseover-only behaviour when there's anything to show."
+          checked: Config.barNotificationsAlwaysShowIfPresent
+          onToggle: function(v) { SettingsService.setPath("components.bar.notifications.alwaysShowIfPresent", v) }
+        }
+        RowInput {
+          colors: root.colors
+          title: "History size"
+          description: "Maximum number of notifications kept in the history pane."
+          value: Config.barNotificationsHistoryMax
+          min: 5; max: 500
+          onCommit: function(v) { SettingsService.setPath("components.bar.notifications.historyMax", v) }
+        }
       }
     }
 
@@ -971,21 +1065,20 @@ Item {
     Column {
       visible: root.activeCategory === "qsmem"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "SKWD MEMORY WIDGET"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      SettingsInput {
+      SettingsCard {
         colors: root.colors
-        label: "Refresh interval (seconds)"
-        description: "How often to scan quickshell/skwd-daemon processes for memory usage. Range: 1 - 60."
-        value: Config.barQsmemRefreshSec
-        min: 1; max: 60; decimals: 0
-        onCommit: function(v) { SettingsService.setPath("components.bar.qsmem.refreshSec", v) }
+        title: "Skwd memory widget"
+        RowInput {
+          colors: root.colors
+          title: "Refresh interval"
+          description: "How often to scan quickshell/skwd-daemon processes for memory usage."
+          value: Config.barQsmemRefreshSec
+          min: 1; max: 60
+          suffix: "s"
+          onCommit: function(v) { SettingsService.setPath("components.bar.qsmem.refreshSec", v) }
+        }
       }
     }
 
@@ -993,116 +1086,152 @@ Item {
     Column {
       visible: root.activeCategory === "music"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "MUSIC WIDGET"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsToggle { colors: root.colors; label: "Auto-hide when nothing's playing"; checked: Config.barMusicAutohide; onToggle: function(v) { SettingsService.setPath("components.bar.music.autohide", v) } }
-      SettingsToggle { colors: root.colors; label: "Show artist & track";              checked: Config.barMusicShowMeta;  onToggle: function(v) { SettingsService.setPath("components.bar.music.showMeta", v) } }
-      SettingsToggle { colors: root.colors; label: "Show lyrics";                       checked: Config.barMusicShowLyrics; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyrics", v) } }
-      SettingsToggle { colors: root.colors; label: "Reveal controls on hover even when paused"; checked: Config.barMusicAlwaysHoverable; onToggle: function(v) { SettingsService.setPath("components.bar.music.alwaysHoverable", v) } }
-      SettingsToggle { colors: root.colors; label: "Clean visualizer (hide lyrics/track)";       checked: Config.barMusicCleanVisualizer; onToggle: function(v) { SettingsService.setPath("components.bar.music.cleanVisualizer", v) } }
-      SettingsToggle { colors: root.colors; label: "Display lyrics retrieval status";            checked: Config.barMusicShowLyricsStatus; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyricsStatus", v) } }
-
-      Text {
-        text: "VISUALIZER"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      SettingsDropdown {
+      SettingsCard {
         colors: root.colors
-        label: "Theme"
-        value: Config.barMusicVisualizer
-        model: [
-          { mode: "wave",              label: "Wave" },
-          { mode: "bars",              label: "Bars" },
-          { mode: "neon",              label: "Neon" },
-          { mode: "pulse",             label: "Pulse" },
-          { mode: "vu",                label: "VU" },
-          { mode: "spectrogram",       label: "Spectrogram" },
-          { mode: "stardust",          label: "Stardust" },
-          { mode: "liquid",            label: "Liquid" },
-          { mode: "ripple",            label: "Ripple" },
-          { mode: "zigzag",            label: "Zigzag" },
-          { mode: "metaballs",         label: "Metaballs" },
-          { mode: "comet",             label: "Comet" },
-          { mode: "aurora",            label: "Aurora" },
-          { mode: "aurora-responsive", label: "Aurora Responsive" },
-          { mode: "spectrum",          label: "Spectrum" },
-          { mode: "off",               label: "Off" }
-        ]
-        onSelect: function(v) { SettingsService.setPath("components.bar.music.visualizer", v) }
+        title: "Music widget"
+        RowToggle { colors: root.colors; title: "Auto-hide when nothing's playing"; checked: Config.barMusicAutohide; onToggle: function(v) { SettingsService.setPath("components.bar.music.autohide", v) } }
+        RowToggle { colors: root.colors; title: "Show artist & track";              checked: Config.barMusicShowMeta;  onToggle: function(v) { SettingsService.setPath("components.bar.music.showMeta", v) } }
+        RowToggle { colors: root.colors; title: "Show lyrics";                       checked: Config.barMusicShowLyrics; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyrics", v) } }
+        RowToggle { colors: root.colors; title: "Reveal controls on hover even when paused"; checked: Config.barMusicAlwaysHoverable; onToggle: function(v) { SettingsService.setPath("components.bar.music.alwaysHoverable", v) } }
+        RowToggle { colors: root.colors; title: "Clean visualizer"; description: "Hide lyrics and track text while the visualizer is active."; checked: Config.barMusicCleanVisualizer; onToggle: function(v) { SettingsService.setPath("components.bar.music.cleanVisualizer", v) } }
+        RowToggle { colors: root.colors; title: "Show lyrics retrieval status";    checked: Config.barMusicShowLyricsStatus; onToggle: function(v) { SettingsService.setPath("components.bar.music.showLyricsStatus", v) } }
+      }
+
+      SettingsCard {
+        colors: root.colors
+        title: "Visualizer"
+        RowDropdown {
+          colors: root.colors
+          title: "Theme"
+          value: Config.barMusicVisualizer
+          model: [
+            { mode: "wave",              label: "Wave" },
+            { mode: "bars",              label: "Bars" },
+            { mode: "neon",              label: "Neon" },
+            { mode: "pulse",             label: "Pulse" },
+            { mode: "vu",                label: "VU" },
+            { mode: "spectrogram",       label: "Spectrogram" },
+            { mode: "stardust",          label: "Stardust" },
+            { mode: "liquid",            label: "Liquid" },
+            { mode: "ripple",            label: "Ripple" },
+            { mode: "zigzag",            label: "Zigzag" },
+            { mode: "metaballs",         label: "Metaballs" },
+            { mode: "comet",             label: "Comet" },
+            { mode: "aurora",            label: "Aurora" },
+            { mode: "aurora-responsive", label: "Aurora Responsive" },
+            { mode: "spectrum",          label: "Spectrum" },
+            { mode: "off",               label: "Off" }
+          ]
+          onSelect: function(v) { SettingsService.setPath("components.bar.music.visualizer", v) }
+        }
+        RowToggle { colors: root.colors; title: "Render above the bar"; checked: Config.barMusicVisualizerTop;    onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerTop", v) } }
+        RowToggle { colors: root.colors; title: "Render below the bar"; checked: Config.barMusicVisualizerBottom; onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerBottom", v) } }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "aurora"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Layer count";       description: "Stacked aurora layers behind the lyrics. More layers = denser look. Range: 1 - 8."; value: Config.vizAuroraLayerCount; min: 1;    max: 8;    decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
-        SettingsInput { colors: root.colors; label: "Outer layer min";   description: "Brightness of the dimmest back layer. Lower = more depth between layers. Range: 0.05 - 0.95."; value: Config.vizAuroraMinAmp;     min: 0.05; max: 0.95; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Aurora"
+          RowInput { colors: root.colors; title: "Layer count";     description: "Stacked aurora layers behind the lyrics."; value: Config.vizAuroraLayerCount; min: 1;    max: 8;    onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
+          RowInput { colors: root.colors; title: "Outer layer min"; description: "Brightness floor of the dimmest back layer."; value: Math.round(Config.vizAuroraMinAmp * 100); min: 5; max: 95; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100.0) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "aurora-responsive"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Layer count";       description: "Stacked aurora layers behind the lyrics. More layers = denser look. Range: 1 - 8."; value: Config.vizAuroraLayerCount;   min: 1;    max: 8;    decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
-        SettingsInput { colors: root.colors; label: "Outer layer min";   description: "Brightness of the dimmest back layer. Lower = more depth between layers. Range: 0.05 - 0.95."; value: Config.vizAuroraMinAmp;       min: 0.05; max: 0.95; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v) } }
-        SettingsInput { colors: root.colors; label: "Pump curve";        description: "Shape of the audio-to-brightness curve. Below 1 lifts quiet audio, above 1 only reacts to loud peaks. Range: 0.15 - 1.20."; value: Config.vizAuroraRespPumpExp;  min: 0.15; max: 1.20; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v) } }
-        SettingsInput { colors: root.colors; label: "Pump scale";        description: "How fast the curve saturates. Higher = hits maximum brightness sooner. Range: 0.50 - 3.00."; value: Config.vizAuroraRespPumpScale; min: 0.50; max: 3.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v) } }
-        SettingsInput { colors: root.colors; label: "Attack speed";      description: "How fast brightness rises on a beat. 1.0 = snap to peaks instantly. Range: 0.05 - 1.00."; value: Config.vizAuroraRespAttack;   min: 0.05; max: 1.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v) } }
-        SettingsInput { colors: root.colors; label: "Decay speed";       description: "How fast brightness falls after a beat. Lower = longer tails. Range: 0.02 - 0.50."; value: Config.vizAuroraRespDecay;    min: 0.02; max: 0.50; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Aurora responsive"
+          RowInput { colors: root.colors; title: "Layer count";     description: "Stacked aurora layers."; value: Config.vizAuroraLayerCount;   min: 1; max: 8; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.layerCount", v) } }
+          RowInput { colors: root.colors; title: "Outer layer min"; value: Math.round(Config.vizAuroraMinAmp * 100); min: 5; max: 95; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.aurora.minAmp", v / 100.0) } }
+          RowInput { colors: root.colors; title: "Pump curve";      description: "Below 1 lifts quiet audio, above 1 only reacts to loud peaks."; value: Math.round(Config.vizAuroraRespPumpExp * 100); min: 15; max: 120; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpExp", v / 100.0) } }
+          RowInput { colors: root.colors; title: "Pump scale";      description: "How quickly the curve saturates."; value: Math.round(Config.vizAuroraRespPumpScale * 100); min: 50; max: 300; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.pumpScale", v / 100.0) } }
+          RowInput { colors: root.colors; title: "Attack speed";    description: "How fast brightness rises on a beat."; value: Math.round(Config.vizAuroraRespAttack * 100); min: 5; max: 100; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.attack", v / 100.0) } }
+          RowInput { colors: root.colors; title: "Decay speed";     description: "How fast brightness falls after a beat."; value: Math.round(Config.vizAuroraRespDecay * 100); min: 2; max: 50; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.auroraResponsive.decay", v / 100.0) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "pulse"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Pill width (px)";   description: "Width of each pulse pill in pixels. Wider pills mean fewer pills fit. Range: 1 - 12."; value: Config.vizPulsePillWidth; min: 1; max: 12; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.pulse.pillWidth", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Pulse"
+          RowInput { colors: root.colors; title: "Pill width"; description: "Width of each pulse pill."; value: Config.vizPulsePillWidth; min: 1; max: 12; suffix: "px"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.pulse.pillWidth", v) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "vu"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Peak decay";        description: "How fast the held peak indicator falls each frame. Higher = peaks drop faster. Range: 0.2 - 6.0."; value: Config.vizVuPeakDecay;    min: 0.2; max: 6.0; decimals: 1; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.vu.peakDecay", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "VU"
+          RowInput { colors: root.colors; title: "Peak decay"; description: "How fast the held peak indicator falls each frame."; value: Math.round(Config.vizVuPeakDecay * 10); min: 2; max: 60; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.vu.peakDecay", v / 10.0) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "spectrogram"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "History columns";   description: "How many past frames are kept on screen. More = longer history, wider trail. Range: 20 - 200."; value: Config.vizSpectrogramCols; min: 20; max: 200; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.spectrogram.cols", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Spectrogram"
+          RowInput { colors: root.colors; title: "History columns"; description: "Past frames kept on screen."; value: Config.vizSpectrogramCols; min: 20; max: 200; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.spectrogram.cols", v) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "stardust"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Star count";        description: "Number of particles. The same count always produces the same starfield. Range: 10 - 200."; value: Config.vizStardustCount; min: 10; max: 200; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.stardust.count", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Stardust"
+          RowInput { colors: root.colors; title: "Star count"; description: "Same count always produces the same starfield."; value: Config.vizStardustCount; min: 10; max: 200; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.stardust.count", v) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "comet"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Trail length";      description: "How many samples the comet trail keeps. Higher = longer streak. Range: 4 - 80."; value: Config.vizCometTrailLen; min: 4; max: 80; decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.comet.trailLen", v) } }
+        spacing: 14 * Config.uiScale
+
+        SettingsCard {
+          colors: root.colors
+          title: "Comet"
+          RowInput { colors: root.colors; title: "Trail length"; description: "Samples kept in the comet's trail."; value: Config.vizCometTrailLen; min: 4; max: 80; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.comet.trailLen", v) } }
+        }
       }
 
       Column {
         visible: Config.barMusicVisualizer === "ripple"
         width: parent.width
-        spacing: 6
-        SettingsInput { colors: root.colors; label: "Bass spike threshold"; description: "How much louder than the running bass average a frame must be to fire a ripple. Near 1.0 fires constantly. Range: 1.05 - 3.00."; value: Config.vizRippleThreshold; min: 1.05; max: 3.00; decimals: 2; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.threshold", v) } }
-        SettingsInput { colors: root.colors; label: "Ripple lifetime";      description: "Frames a ripple stays on screen before fading. Range: 8 - 120."; value: Config.vizRippleMaxAge;    min: 8;    max: 120;  decimals: 0; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.maxAge", v) } }
-      }
+        spacing: 14 * Config.uiScale
 
-      SettingsToggle { colors: root.colors; label: "Render visualizer above"; checked: Config.barMusicVisualizerTop;    onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerTop", v) } }
-      SettingsToggle { colors: root.colors; label: "Render visualizer below"; checked: Config.barMusicVisualizerBottom; onToggle: function(v) { SettingsService.setPath("components.bar.music.visualizerBottom", v) } }
+        SettingsCard {
+          colors: root.colors
+          title: "Ripple"
+          RowInput { colors: root.colors; title: "Bass spike threshold"; description: "Multiplier over the running bass average to fire a ripple."; value: Math.round(Config.vizRippleThreshold * 100); min: 105; max: 300; suffix: "%"; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.threshold", v / 100.0) } }
+          RowInput { colors: root.colors; title: "Ripple lifetime";      description: "Frames a ripple stays on screen before fading.";              value: Config.vizRippleMaxAge; min: 8; max: 120; onCommit: function(v) { SettingsService.setPath("components.bar.music.viz.ripple.maxAge", v) } }
+        }
+      }
     }
   }
 

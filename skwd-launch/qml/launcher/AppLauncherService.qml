@@ -18,6 +18,22 @@ QtObject {
   property string searchText: ""
   property string sourceFilter: ""
 
+  function _findFilter(key) {
+    var list = Config.launchFilters || []
+    for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i]
+    return null
+  }
+
+  function _matchesFilter(item, key) {
+    var f = _findFilter(key)
+    if (!f || f.type === "all") return true
+    var v = f.value || ""
+    if (f.type === "source")   return item.source === v
+    if (f.type === "category") return v !== "" && item.categories && item.categories.indexOf(v) !== -1
+    if (f.type === "tag")      return v !== "" && item.tags && item.tags.indexOf(v) !== -1
+    return true
+  }
+
   
   property bool cacheLoading: false
   property int cacheProgress: 0
@@ -88,9 +104,7 @@ QtObject {
           item.displayName.toLowerCase().indexOf(query) === -1 &&
           item.tags.toLowerCase().indexOf(query) === -1)
         continue
-      if (sf === "steam" && item.source !== "steam") continue
-      if (sf === "desktop" && item.source !== "desktop") continue
-      if (sf === "game" && item.categories.indexOf("Game") === -1) continue
+      if (sf !== "" && !_matchesFilter(item, sf)) continue
       results.push({
         name: item.name,
         exec: item.exec,

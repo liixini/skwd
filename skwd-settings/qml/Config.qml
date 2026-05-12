@@ -29,6 +29,13 @@ QtObject {
     readonly property bool devMode: _data.dev === true
     readonly property string mainMonitor: _data.monitor ?? ""
     readonly property string terminal: _data.terminal ?? "kitty"
+
+    property var _programs: _data.programs ?? ({})
+    readonly property bool progLaunchEnabled:       _programs.launch       !== false
+    readonly property bool progBarEnabled:          _programs.bar          !== false
+    readonly property bool progSwitchEnabled:       _programs["switch"]    !== false
+    readonly property bool progNotificationEnabled: _programs.notification !== false
+    readonly property bool progPowerEnabled:        _programs.power        !== false
     readonly property string splashDir: _resolve(_data.paths?.splash) || (homeDir + "/appsplash")
     readonly property string steamDir: _resolve(_data.paths?.steam)
     readonly property string appsConfigPath: configDir + "/data/apps.json"
@@ -55,11 +62,14 @@ QtObject {
     readonly property int    launchGridRows:       _launcher.gridRows       ?? 3
     readonly property int    launchGridThumbWidth: _launcher.gridThumbWidth ?? 300
     readonly property int    launchGridThumbHeight:_launcher.gridThumbHeight?? 169
-    readonly property int    launchMosaicCells:    _launcher.mosaicCells    ?? 48
-    readonly property int    launchMosaicSeed:     _launcher.mosaicSeed     ?? 7
-    readonly property int    launchMosaicRelaxation: _launcher.mosaicRelaxation ?? 2
-    readonly property int    launchMosaicWidth:    _launcher.mosaicWidth    ?? 1500
-    readonly property int    launchMosaicHeight:   _launcher.mosaicHeight   ?? 800
+
+    readonly property var _launchFilterDefaults: [
+      { key: "all",     icon: "\u{F0136}", label: "All",   type: "all",      value: "" },
+      { key: "desktop", icon: "\u{F003B}", label: "Apps",  type: "source",   value: "desktop" },
+      { key: "game",    icon: "\u{F0297}", label: "Games", type: "category", value: "Game" },
+      { key: "steam",   icon: "\u{F04D3}", label: "Steam", type: "source",   value: "steam" }
+    ]
+    readonly property var launchFilters: Array.isArray(_launcher.filters) && _launcher.filters.length > 0 ? _launcher.filters : _launchFilterDefaults
 
     
     property var _bar: _data.components?.bar ?? {}
@@ -114,6 +124,7 @@ QtObject {
     function barWidgetIconOverride(id)  { var o = barWidgetOverrides[id]; return (o && o.icon)  ? o.icon  : "" }
     function barWidgetLabelOverride(id) { var o = barWidgetOverrides[id]; return (o && o.label) ? o.label : "" }
     function barWidgetMouseoverEnabled(id) { var o = barWidgetOverrides[id]; return !!(o && o.mouseover) }
+    function barWidgetDisabledOverride(id) { var o = barWidgetOverrides[id]; return !!(o && o.disabled) }
     readonly property bool   barWeatherEnabled: _bar.weather !== undefined && _bar.weather !== false && _bar.weather?.enabled !== false
     readonly property string barWeatherCity:    _bar.weather?.city ?? ""
     readonly property var    barWeatherCities:  Array.isArray(_bar.weather?.cities) ? _bar.weather.cities : (_bar.weather?.city ? [_bar.weather.city] : [])

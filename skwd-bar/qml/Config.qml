@@ -71,6 +71,7 @@ QtObject {
     function barWidgetIcon(id, fallback)  { var o = barWidgetOverrides[id]; return (o && o.icon)  ? o.icon  : fallback }
     function barWidgetLabel(id, fallback) { var o = barWidgetOverrides[id]; return (o && o.label) ? o.label : fallback }
     function barWidgetMouseover(id)       { var o = barWidgetOverrides[id]; return !!(o && o.mouseover) }
+    function barWidgetDisabled(id)        { var o = barWidgetOverrides[id]; return !!(o && o.disabled) }
     readonly property var weatherCities: {
         let arr = _bar.weather?.cities
         if (Array.isArray(arr) && arr.length > 0) return arr.filter(s => typeof s === "string" && s.length > 0)

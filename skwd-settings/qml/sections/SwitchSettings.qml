@@ -14,16 +14,6 @@ Item {
     { key: "background", label: "BACKGROUND" }
   ]
 
-  property string _selectedMode: Config.switchDisplayMode
-
-  Connections {
-    target: Config
-    function onSwitchDisplayModeChanged() {
-      if (Config.switchDisplayMode !== root._selectedMode)
-        root._selectedMode = Config.switchDisplayMode
-    }
-  }
-
   implicitHeight: _stack.implicitHeight
 
   Item {
@@ -31,142 +21,104 @@ Item {
     width: parent.width
     implicitHeight: childrenRect.height
 
-
     Column {
       visible: root.activeCategory === "layout"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "DISPLAY MODE"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      Row {
-        width: parent.width; spacing: -4
-        Repeater {
+      SettingsCard {
+        colors: root.colors
+        title: "Display mode"
+        RowDropdown {
+          colors: root.colors
+          title: "Switcher style"
+          description: "Visual style of the alt-tab window switcher."
+          value: Config.switchDisplayMode
           model: [
-            { mode: "slice",   label: "SLICE",   icon: "" },
-            { mode: "grid",    label: "GRID",    icon: "" },
-            { mode: "compact", label: "COMPACT", icon: "" },
-            { mode: "wheel",   label: "WHEEL",   icon: "" }
+            { mode: "slice",   label: "Slice - angled cards" },
+            { mode: "grid",    label: "Grid - rows and columns" },
+            { mode: "compact", label: "Compact - small cells" },
+            { mode: "wheel",   label: "Wheel - radial layout" }
           ]
-          FilterButton {
-            colors: root.colors
-            label: modelData.label
-            icon: modelData.icon
-            skew: 8 * Config.uiScale
-            height: 26 * Config.uiScale
-            isActive: root._selectedMode === modelData.mode
-            onClicked: {
-              root._selectedMode = modelData.mode
-              SettingsService.setSwitcherKey("displayMode", modelData.mode)
-            }
-          }
+          onSelect: function(v) { SettingsService.setSwitcherKey("displayMode", v) }
         }
       }
 
-      Item { width: 1; height: 6 }
-
-
-      Column {
-        visible: root._selectedMode === "slice"
-        width: parent.width
-        spacing: 8 * Config.uiScale
-
-        Text {
-          text: "SLICE GEOMETRY"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-        }
-
-        SettingsInput { colors: root.colors; label: "Slice width";       value: Config.switchSliceWidth;        min: 60;  max: 300;  onCommit: function(v) { SettingsService.setSwitcherKey("sliceWidth", v) } }
-        SettingsInput { colors: root.colors; label: "Expanded width";    value: Config.switchSliceExpandedWidth; min: 400; max: 1600; onCommit: function(v) { SettingsService.setSwitcherKey("sliceExpandedWidth", v) } }
-        SettingsInput { colors: root.colors; label: "Slice height";      value: Config.switchSliceHeight;       min: 200; max: 800;  onCommit: function(v) { SettingsService.setSwitcherKey("sliceHeight", v) } }
-        SettingsInput { colors: root.colors; label: "Skew offset";       value: Config.switchSliceSkewOffset;   min: 0;   max: 80;   onCommit: function(v) { SettingsService.setSwitcherKey("sliceSkewOffset", v) } }
-        SettingsInput { colors: root.colors; label: "Slice spacing";     value: Config.switchSliceSpacing;      min: -60; max: 30;   onCommit: function(v) { SettingsService.setSwitcherKey("sliceSpacing", v) } }
-        SettingsInput { colors: root.colors; label: "Visible count";     value: Config.switchSliceVisibleCount; min: 4;   max: 24;   onCommit: function(v) { SettingsService.setSwitcherKey("sliceVisibleCount", v) } }
-        SettingsInput { colors: root.colors; label: "Card width";        value: Config.switchCardWidth;         min: 800; max: 3200; onCommit: function(v) { SettingsService.setSwitcherKey("cardWidth", v) } }
-        SettingsInput { colors: root.colors; label: "Card height pad";   value: Config.switchCardHeightPad;     min: 0;   max: 200;  onCommit: function(v) { SettingsService.setSwitcherKey("cardHeightPad", v) } }
+      SettingsCard {
+        visible: Config.switchDisplayMode === "slice"
+        colors: root.colors
+        title: "Slice geometry"
+        RowInput { colors: root.colors; title: "Slice width";    value: Config.switchSliceWidth;        min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("sliceWidth", v) } }
+        RowInput { colors: root.colors; title: "Expanded width"; value: Config.switchSliceExpandedWidth; min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("sliceExpandedWidth", v) } }
+        RowInput { colors: root.colors; title: "Slice height";   value: Config.switchSliceHeight;       min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("sliceHeight", v) } }
+        RowInput { colors: root.colors; title: "Skew offset";    value: Config.switchSliceSkewOffset;   min: -9999; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("sliceSkewOffset", v) } }
+        RowInput { colors: root.colors; title: "Slice spacing";  value: Config.switchSliceSpacing;      min: -9999; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("sliceSpacing", v) } }
+        RowInput { colors: root.colors; title: "Visible count";  value: Config.switchSliceVisibleCount; min: 1; max: 999;  onCommit: function(v) { SettingsService.setSwitcherKey("sliceVisibleCount", v) } }
+        RowInput { colors: root.colors; title: "Card width";     value: Config.switchCardWidth;         min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("cardWidth", v) } }
+        RowInput { colors: root.colors; title: "Card height pad"; value: Config.switchCardHeightPad;    min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("cardHeightPad", v) } }
       }
 
-
-      Column {
-        visible: root._selectedMode === "grid"
-        width: parent.width
-        spacing: 8 * Config.uiScale
-
-        Text {
-          text: "GRID GEOMETRY"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-        }
-
-        SettingsInput { colors: root.colors; label: "Columns";           value: Config.switchGridColumns;     min: 1;  max: 12;  onCommit: function(v) { SettingsService.setSwitcherKey("gridColumns", v) } }
-        SettingsInput { colors: root.colors; label: "Rows";              value: Config.switchGridRows;        min: 1;  max: 12;  onCommit: function(v) { SettingsService.setSwitcherKey("gridRows", v) } }
-        SettingsInput { colors: root.colors; label: "Cell width";        value: Config.switchGridCellWidth;   min: 120; max: 480; onCommit: function(v) { SettingsService.setSwitcherKey("gridCellWidth", v) } }
-        SettingsInput { colors: root.colors; label: "Cell height";       value: Config.switchGridCellHeight;  min: 90;  max: 360; onCommit: function(v) { SettingsService.setSwitcherKey("gridCellHeight", v) } }
-        SettingsInput { colors: root.colors; label: "Spacing";           value: Config.switchGridSpacing;     min: 0;   max: 40;  onCommit: function(v) { SettingsService.setSwitcherKey("gridSpacing", v) } }
-        SettingsInput { colors: root.colors; label: "Icon size";         value: Config.switchGridIconSize;    min: 32;  max: 144; onCommit: function(v) { SettingsService.setSwitcherKey("gridIconSize", v) } }
+      SettingsCard {
+        visible: Config.switchDisplayMode === "grid"
+        colors: root.colors
+        title: "Grid geometry"
+        RowInput { colors: root.colors; title: "Columns";     value: Config.switchGridColumns;    min: 1; max: 999;  onCommit: function(v) { SettingsService.setSwitcherKey("gridColumns", v) } }
+        RowInput { colors: root.colors; title: "Rows";        value: Config.switchGridRows;       min: 1; max: 999;  onCommit: function(v) { SettingsService.setSwitcherKey("gridRows", v) } }
+        RowInput { colors: root.colors; title: "Cell width";  value: Config.switchGridCellWidth;  min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("gridCellWidth", v) } }
+        RowInput { colors: root.colors; title: "Cell height"; value: Config.switchGridCellHeight; min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("gridCellHeight", v) } }
+        RowInput { colors: root.colors; title: "Spacing";     value: Config.switchGridSpacing;    min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("gridSpacing", v) } }
+        RowInput { colors: root.colors; title: "Icon size";   value: Config.switchGridIconSize;   min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("gridIconSize", v) } }
       }
 
-
-      Column {
-        visible: root._selectedMode === "compact"
-        width: parent.width
-        spacing: 8 * Config.uiScale
-
-        Text {
-          text: "COMPACT GEOMETRY"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-        }
-
-        SettingsInput { colors: root.colors; label: "Cell width";        value: Config.switchCompactCellWidth;   min: 60;  max: 200; onCommit: function(v) { SettingsService.setSwitcherKey("compactCellWidth", v) } }
-        SettingsInput { colors: root.colors; label: "Cell height";       value: Config.switchCompactCellHeight;  min: 70;  max: 200; onCommit: function(v) { SettingsService.setSwitcherKey("compactCellHeight", v) } }
-        SettingsInput { colors: root.colors; label: "Spacing";           value: Config.switchCompactSpacing;     min: 0;   max: 30;  onCommit: function(v) { SettingsService.setSwitcherKey("compactSpacing", v) } }
-        SettingsInput { colors: root.colors; label: "Icon size";         value: Config.switchCompactIconSize;    min: 24;  max: 96;  onCommit: function(v) { SettingsService.setSwitcherKey("compactIconSize", v) } }
-        SettingsInput { colors: root.colors; label: "Card padding";      value: Config.switchCompactCardPad;     min: 0;   max: 80;  onCommit: function(v) { SettingsService.setSwitcherKey("compactCardPad", v) } }
+      SettingsCard {
+        visible: Config.switchDisplayMode === "compact"
+        colors: root.colors
+        title: "Compact geometry"
+        RowInput { colors: root.colors; title: "Cell width";   value: Config.switchCompactCellWidth;  min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("compactCellWidth", v) } }
+        RowInput { colors: root.colors; title: "Cell height";  value: Config.switchCompactCellHeight; min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("compactCellHeight", v) } }
+        RowInput { colors: root.colors; title: "Spacing";      value: Config.switchCompactSpacing;    min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("compactSpacing", v) } }
+        RowInput { colors: root.colors; title: "Icon size";    value: Config.switchCompactIconSize;   min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("compactIconSize", v) } }
+        RowInput { colors: root.colors; title: "Card padding"; value: Config.switchCompactCardPad;    min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("compactCardPad", v) } }
       }
 
-
-      Column {
-        visible: root._selectedMode === "wheel"
-        width: parent.width
-        spacing: 8 * Config.uiScale
-
-        Text {
-          text: "WHEEL GEOMETRY"
-          font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-          color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-        }
-
-        SettingsInput { colors: root.colors; label: "Outer radius";      value: Config.switchWheelOuterRadius; min: 160; max: 640; onCommit: function(v) { SettingsService.setSwitcherKey("wheelOuterRadius", v) } }
-        SettingsInput { colors: root.colors; label: "Inner radius";      value: Config.switchWheelInnerRadius; min: 40;  max: 240; onCommit: function(v) { SettingsService.setSwitcherKey("wheelInnerRadius", v) } }
-        SettingsInput { colors: root.colors; label: "Icon size";         value: Config.switchWheelIconSize;    min: 32;  max: 144; onCommit: function(v) { SettingsService.setSwitcherKey("wheelIconSize", v) } }
-        SettingsInput { colors: root.colors; label: "Section gap (deg)"; value: Config.switchWheelGap;         min: 0;   max: 12;  onCommit: function(v) { SettingsService.setSwitcherKey("wheelGap", v) } }
-        SettingsInput { colors: root.colors; label: "Start angle (deg)"; value: Math.round(Config.switchWheelStartAngle); min: -180; max: 180; onCommit: function(v) { SettingsService.setSwitcherKey("wheelStartAngle", v) } }
+      SettingsCard {
+        visible: Config.switchDisplayMode === "wheel"
+        colors: root.colors
+        title: "Wheel geometry"
+        RowInput { colors: root.colors; title: "Outer radius"; value: Config.switchWheelOuterRadius; min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("wheelOuterRadius", v) } }
+        RowInput { colors: root.colors; title: "Inner radius"; value: Config.switchWheelInnerRadius; min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("wheelInnerRadius", v) } }
+        RowInput { colors: root.colors; title: "Icon size";    value: Config.switchWheelIconSize;    min: 0; max: 9999; onCommit: function(v) { SettingsService.setSwitcherKey("wheelIconSize", v) } }
+        RowInput { colors: root.colors; title: "Section gap";  value: Config.switchWheelGap;         min: 0; max: 999;  suffix: "°"; onCommit: function(v) { SettingsService.setSwitcherKey("wheelGap", v) } }
+        RowInput { colors: root.colors; title: "Start angle";  value: Math.round(Config.switchWheelStartAngle); min: -999; max: 999; suffix: "°"; onCommit: function(v) { SettingsService.setSwitcherKey("wheelStartAngle", v) } }
       }
     }
-
 
     Column {
       visible: root.activeCategory === "background"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "OVERLAY"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-
-      SettingsInput { colors: root.colors; label: "Fade-in duration (ms)"; value: Config.switchAnimFadeIn; min: 0; max: 1500; onCommit: function(v) { SettingsService.setSwitcherKey("animFadeIn", v) } }
-      SettingsInput {
-        colors: root.colors; label: "Dim opacity (%)"
-        value: Math.round(Config.switchDimOpacity * 100); min: 0; max: 100
-        onCommit: function(v) { SettingsService.setSwitcherKey("dimOpacity", v / 100.0) }
+      SettingsCard {
+        colors: root.colors
+        title: "Overlay"
+        RowInput {
+          colors: root.colors
+          title: "Fade-in duration"
+          description: "How long the dim layer takes to fade in when the switcher opens."
+          value: Config.switchAnimFadeIn
+          min: 0; max: 9999
+          suffix: "ms"
+          onCommit: function(v) { SettingsService.setSwitcherKey("animFadeIn", v) }
+        }
+        RowInput {
+          colors: root.colors
+          title: "Dim opacity"
+          description: "How dark the rest of the screen gets while the switcher is open."
+          value: Math.round(Config.switchDimOpacity * 100)
+          min: 0; max: 100
+          suffix: "%"
+          onCommit: function(v) { SettingsService.setSwitcherKey("dimOpacity", v / 100.0) }
+        }
       }
     }
   }

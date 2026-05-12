@@ -6,4 +6,5 @@ MusicSettings 1.0 MusicSettings.qml
 NotificationSettings 1.0 NotificationSettings.qml
 ModulesSettings 1.0 ModulesSettings.qml
 PowerSettings 1.0 PowerSettings.qml
+ProgramsSettings 1.0 ProgramsSettings.qml
 PlaceholderSection 1.0 PlaceholderSection.qml

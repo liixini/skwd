@@ -23,105 +23,83 @@ Item {
     width: parent.width
     implicitHeight: childrenRect.height
 
-    
     Column {
       visible: root.activeCategory === "player"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "PREFERRED PLAYER"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      Row {
-        width: parent.width; spacing: -4
-        Repeater {
+      SettingsCard {
+        colors: root.colors
+        title: "Player"
+        RowDropdown {
+          colors: root.colors
+          title: "Preferred player"
+          description: "Which MPRIS player to prioritise when multiple are running. Auto picks whatever is active."
+          value: Config.musicPreferredPlayer
           model: [
-            { id: "spotify",   label: "Spotify" },
-            { id: "librespot", label: "Librespot" },
-            { id: "mpd",       label: "MPD" },
-            { id: "auto",      label: "Auto" }
+            { mode: "spotify",   label: "Spotify" },
+            { mode: "librespot", label: "Librespot" },
+            { mode: "mpd",       label: "MPD" },
+            { mode: "auto",      label: "Auto" }
           ]
-          FilterButton {
-            colors: root.colors
-            label: modelData.label
-            skew: 8 * Config.uiScale
-            height: 26 * Config.uiScale
-            isActive: Config.musicPreferredPlayer === modelData.id
-            onClicked: root._save("preferredPlayer", modelData.id)
-          }
+          onSelect: function(v) { root._save("preferredPlayer", v) }
         }
       }
 
-      Item { width: 1; height: 6 }
-
-      Text {
-        text: "SPOTIFY"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsTextInput {
+      SettingsCard {
         colors: root.colors
-        label: "Spotify client ID"
-        value: Config.musicSpotifyClientId
-        placeholder: "Required for Spotify Web API features"
-        onCommit: function(v) { root._save("spotifyClientId", v) }
+        title: "Spotify"
+        RowTextInput {
+          colors: root.colors
+          title: "Client ID"
+          description: "Required for Spotify Web API features. Get one from developer.spotify.com."
+          value: Config.musicSpotifyClientId
+          placeholder: "spotify client id"
+          onCommit: function(v) { root._save("spotifyClientId", v) }
+        }
       }
     }
 
-    
     Column {
       visible: root.activeCategory === "librespot"
       width: parent.width
-      spacing: 8 * Config.uiScale
+      spacing: 14 * Config.uiScale
 
-      Text {
-        text: "LIBRESPOT DAEMON"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      SettingsTextInput {
+      SettingsCard {
         colors: root.colors
-        label: "Device name"
-        value: Config.musicLibrespotDevice
-        placeholder: "Shown in the Spotify Connect picker"
-        onCommit: function(v) { root._save("librespotDevice", v) }
-      }
-
-      Text {
-        text: "AUDIO BACKEND"
-        font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.5
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-      }
-      Row {
-        width: parent.width; spacing: -4
-        Repeater {
-          model: [
-            { id: "pulseaudio", label: "PulseAudio" },
-            { id: "pipewire",   label: "PipeWire" },
-            { id: "alsa",       label: "ALSA" }
-          ]
-          FilterButton {
-            colors: root.colors
-            label: modelData.label
-            skew: 8 * Config.uiScale
-            height: 26 * Config.uiScale
-            isActive: Config.musicLibrespotBackend === modelData.id
-            onClicked: root._save("librespotBackend", modelData.id)
-          }
+        title: "Librespot daemon"
+        subtitle: "Embedded Spotify Connect daemon."
+        RowTextInput {
+          colors: root.colors
+          title: "Device name"
+          description: "Name shown in the Spotify Connect picker."
+          value: Config.musicLibrespotDevice
+          placeholder: "skwd-music"
+          onCommit: function(v) { root._save("librespotDevice", v) }
         }
-      }
-
-      SettingsInput {
-        colors: root.colors
-        label: "Bitrate"
-        value: Config.musicLibrespotBitrate
-        min: 96; max: 320
-        onCommit: function(v) {
-          
-          var snapped = v < 128 ? 96 : (v < 240 ? 160 : 320)
-          root._save("librespotBitrate", snapped)
+        RowDropdown {
+          colors: root.colors
+          title: "Audio backend"
+          description: "Output target for librespot."
+          value: Config.musicLibrespotBackend
+          model: [
+            { mode: "pulseaudio", label: "PulseAudio" },
+            { mode: "pipewire",   label: "PipeWire" },
+            { mode: "alsa",       label: "ALSA" }
+          ]
+          onSelect: function(v) { root._save("librespotBackend", v) }
+        }
+        RowDropdown {
+          colors: root.colors
+          title: "Bitrate"
+          description: "Stream quality in kbps."
+          value: String(Config.musicLibrespotBitrate)
+          model: [
+            { mode: "96",  label: "96 kbps" },
+            { mode: "160", label: "160 kbps" },
+            { mode: "320", label: "320 kbps" }
+          ]
+          onSelect: function(v) { root._save("librespotBitrate", parseInt(v)) }
         }
       }
     }

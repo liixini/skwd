@@ -79,11 +79,6 @@
       "gridRows": 3,
       "gridThumbWidth": 300,
       "gridThumbHeight": 169,
-      "mosaicCells": 48,
-      "mosaicSeed": 7,
-      "mosaicRelaxation": 2,
-      "mosaicWidth": 1500,
-      "mosaicHeight": 800,
       "customPresets": {}
     }
   },
