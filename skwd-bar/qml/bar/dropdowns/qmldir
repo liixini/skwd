@@ -7,3 +7,4 @@ VolumeSlider 1.0 VolumeSlider.qml
 WeatherDropdown 1.0 WeatherDropdown.qml
 WiFiDropdown 1.0 WiFiDropdown.qml
 QsMemDropdown 1.0 QsMemDropdown.qml
+DropdownTail 1.0 DropdownTail.qml

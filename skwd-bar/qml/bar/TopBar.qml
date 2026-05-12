@@ -85,20 +85,21 @@ PanelWindow {
   property real _brightnessH: Config.brightnessEnabled ? brightnessDropdown.animatedHeight : 0
   property real _notifsH: Config.notificationsEnabled ? notificationsDropdown.animatedHeight : 0
   property real _qsmemH: qsmemDropdown.animatedHeight
-  property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH + _brightnessH + _notifsH + _qsmemH
-
   function _sideHeight(side) {
-    return (_widgetSide("wifi")          === side ? _wifiH       : 0)
-         + (_widgetSide("volume")        === side ? _volumeH     : 0)
-         + (_widgetSide("clock")         === side ? _calendarH   : 0)
-         + (_widgetSide("bluetooth")     === side ? _bluetoothH  : 0)
-         + (_widgetSide("weather")       === side ? _weatherH    : 0)
-         + (_widgetSide("brightness")    === side ? _brightnessH : 0)
-         + (_widgetSide("notifications") === side ? _notifsH     : 0)
-         + (_widgetSide("qsmem")         === side ? _qsmemH      : 0)
+    return Math.max(
+      _widgetSide("wifi")          === side ? _wifiH       : 0,
+      _widgetSide("volume")        === side ? _volumeH     : 0,
+      _widgetSide("clock")         === side ? _calendarH   : 0,
+      _widgetSide("bluetooth")     === side ? _bluetoothH  : 0,
+      _widgetSide("weather")       === side ? _weatherH    : 0,
+      _widgetSide("brightness")    === side ? _brightnessH : 0,
+      _widgetSide("notifications") === side ? _notifsH     : 0,
+      _widgetSide("qsmem")         === side ? _qsmemH      : 0
+    )
   }
   property real leftDropdownHeight:  _sideHeight("left")
   property real rightDropdownHeight: _sideHeight("right")
+  property real totalDropdownHeight: Math.max(leftDropdownHeight, rightDropdownHeight)
   property bool _lyricsPlaying: Config.musicEnabled ? lyricsIsland.musicPlaying : false
   implicitHeight: Math.max(1, animatedBarHeight) + totalDropdownHeight + (_lyricsPlaying ? waveformHeight : 0)
   exclusiveZone: barVisible ? barHeight + topMargin : 0
@@ -120,6 +121,15 @@ PanelWindow {
 
   function _widgetSide(id) {
     return Config.barLeftLayout.indexOf(id) >= 0 ? "left" : "right"
+  }
+
+  function _dropX(side, w) {
+    var dW = w !== undefined ? w : bar.dropdownContentWidth
+    var maxX = Math.max(bar._pillSideMargin, bar.width - dW - bar._pillSideMargin)
+    if (side === "left") {
+      return Math.min(maxX, bar._pillSideMargin)
+    }
+    return Math.max(bar._pillSideMargin, Math.min(maxX, bar.dropdownCenterX - dW / 2))
   }
 
   mask: Region {
@@ -1257,81 +1267,92 @@ PanelWindow {
     id: wifiDropdown
     readonly property string sideOf: bar._widgetSide("wifi")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
     anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.wifiEnabled && bar.activeDropdown === "wifi"
     wifiSsid: wifiInfo.ssid
     wifiSignalStrength: wifiInfo.signalStrength
   }
+  DropdownTail { dropdown: wifiDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   VolumeDropdown {
     id: volumeDropdown
     readonly property string sideOf: bar._widgetSide("volume")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.volumeEnabled && bar.activeDropdown === "volume"
   }
+  DropdownTail { dropdown: volumeDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   CalendarDropdown {
     id: calendarDropdown
     readonly property string sideOf: bar._widgetSide("clock")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.calendarEnabled && bar.activeDropdown === "clock"
     clock: bar.clock
   }
+  DropdownTail { dropdown: calendarDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   BluetoothDropdown {
     id: bluetoothDropdown
     readonly property string sideOf: bar._widgetSide("bluetooth")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.bluetoothEnabled && bar.activeDropdown === "bluetooth"
     connectedDevices: bluetoothInfo.connectedDevices
   }
+  DropdownTail { dropdown: bluetoothDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   WeatherDropdown {
     id: weatherDropdown
     readonly property string sideOf: bar._widgetSide("weather")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.weatherEnabled && bar.activeDropdown === "weather"
     weatherCity: bar.weatherCity
     weatherForecast: bar.weatherForecast
   }
+  DropdownTail { dropdown: weatherDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   BrightnessDropdown {
     id: brightnessDropdown
     readonly property string sideOf: bar._widgetSide("brightness")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.brightnessEnabled && bar.activeDropdown === "brightness"
@@ -1345,15 +1366,17 @@ PanelWindow {
       }
     }
   }
+  DropdownTail { dropdown: brightnessDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   NotificationCenterDropdown {
     id: notificationsDropdown
     readonly property string sideOf: bar._widgetSide("notifications")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH + bar._brightnessH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: Config.notificationsEnabled && bar.activeDropdown === "notifications"
@@ -1361,15 +1384,17 @@ PanelWindow {
     onDismissRequested: function(idx) { bar._dismissNotification(idx) }
     onClearAllRequested: bar._clearAllNotifications()
   }
+  DropdownTail { dropdown: notificationsDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 
   QsMemDropdown {
     id: qsmemDropdown
     readonly property string sideOf: bar._widgetSide("qsmem")
     side: sideOf
-    x: Math.max(bar._pillSideMargin + bar.barHeight / 2, Math.min(bar.width - bar._pillSideMargin - bar.barHeight / 2 - width, bar.dropdownCenterX - width / 2))
+    x: bar._dropX(sideOf, contentWidth)
     anchors.top: parent.top
     width: contentWidth
-    anchors.topMargin: bar._dropTopMargin(bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH + bar._weatherH + bar._brightnessH + bar._notifsH)
+    anchors.topMargin: bar._dropTopMargin(0)
+    z: active ? 2 : 1
     contentWidth: bar.dropdownContentWidth
     colors: bar.colors
     active: bar.activeDropdown === "qsmem"
@@ -1377,4 +1402,5 @@ PanelWindow {
     totalMb: qsmemInfo.totalMb
     totalRssMb: qsmemInfo.totalRssMb
   }
+  DropdownTail { dropdown: qsmemDropdown; barWidth: bar.width; barSideMargin: bar._pillSideMargin; tailTopMargin: bar._dropTopMargin(0) }
 }

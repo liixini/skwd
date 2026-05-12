@@ -81,8 +81,8 @@ QtObject {
             + "?latitude=" + lat
             + "&longitude=" + lon
             + "&current=temperature_2m,weather_code"
-            + "&daily=temperature_2m_max,temperature_2m_min,weather_code"
-            + "&timezone=auto&forecast_days=3"
+            + "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max"
+            + "&wind_speed_unit=ms&timezone=auto&forecast_days=7"
         xhr.onreadystatechange = function() {
             if (xhr.readyState !== XMLHttpRequest.DONE) return
             if (xhr.status === 200) service._parseInto(city, xhr.responseText)
@@ -163,14 +163,18 @@ QtObject {
             var d = json.daily
             if (d && Array.isArray(d.time)) {
                 var fc = []
-                for (var i = 0; i < Math.min(3, d.time.length); i++) {
+                for (var i = 0; i < Math.min(7, d.time.length); i++) {
                     var date = new Date(d.time[i])
-                    var dayName = i === 0 ? "Today" : date.toLocaleDateString('en-US', {weekday: 'short'})
+                    var dayName = Qt.formatDate(date, "ddd").toUpperCase()
+                    var rain = (d.precipitation_sum && typeof d.precipitation_sum[i] === "number") ? d.precipitation_sum[i] : -1
+                    var wind = (d.wind_speed_10m_max && typeof d.wind_speed_10m_max[i] === "number") ? Math.round(d.wind_speed_10m_max[i]) : -1
                     fc.push({
                         day: dayName,
                         high: Math.round(d.temperature_2m_max[i]) + "°",
                         low:  Math.round(d.temperature_2m_min[i]) + "°",
-                        desc: service._codeToDesc(d.weather_code[i])
+                        desc: service._codeToDesc(d.weather_code[i]),
+                        rain: rain,
+                        wind: wind
                     })
                 }
                 result.forecast = fc
