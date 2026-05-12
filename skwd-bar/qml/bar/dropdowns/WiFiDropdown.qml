@@ -18,23 +18,31 @@ Rectangle {
   property real _expand: 0
   Behavior on _expand {
     NumberAnimation {
-      duration: 420
-      easing.type: Easing.InOutQuart
+      duration: 320
+      easing.type: Easing.BezierSpline
+      easing.bezierCurve: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
     }
   }
 
   property real _targetContentHeight: wifiColumn.implicitHeight + 24
   property real _smoothedContentHeight: _targetContentHeight
   Behavior on _smoothedContentHeight {
-    NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+    NumberAnimation {
+      duration: 320
+      easing.type: Easing.BezierSpline
+      easing.bezierCurve: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
+    }
   }
 
   readonly property real animatedHeight: _expand * _smoothedContentHeight
 
   height: animatedHeight
   visible: animatedHeight > 0.5
+  clip: true
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
   radius: Config.barStyle === "pill" ? 16 : 0
+  topLeftRadius: 0
+  topRightRadius: 0
 
   property string pendingSsid: ""
   property string pendingSecurity: ""

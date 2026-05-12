@@ -20,15 +20,22 @@ Rectangle {
   property real _targetHeight: 0
   property real _animatedHeight: _targetHeight
   Behavior on _animatedHeight {
-    NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+    NumberAnimation {
+      duration: 320
+      easing.type: Easing.BezierSpline
+      easing.bezierCurve: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
+    }
   }
 
   readonly property int desiredHeight: Math.min(420, 60 + 84 * Math.max(1, historyModel ? historyModel.count : 1))
 
   height: _animatedHeight
   visible: _animatedHeight > 0
+  clip: true
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.92)
   radius: Config.barStyle === "pill" ? 16 : 0
+  topLeftRadius: 0
+  topRightRadius: 0
 
   onActiveChanged: _targetHeight = active ? desiredHeight : 0
   onDesiredHeightChanged: if (active) _targetHeight = desiredHeight

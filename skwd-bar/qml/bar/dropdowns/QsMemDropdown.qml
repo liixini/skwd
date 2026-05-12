@@ -22,13 +22,20 @@ Rectangle {
   property real _targetHeight: 0
   property real _animatedHeight: _targetHeight
   Behavior on _animatedHeight {
-    NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+    NumberAnimation {
+      duration: 320
+      easing.type: Easing.BezierSpline
+      easing.bezierCurve: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
+    }
   }
 
   height: _animatedHeight
   visible: _animatedHeight > 0
+  clip: true
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
   radius: Config.barStyle === "pill" ? 16 : 0
+  topLeftRadius: 0
+  topRightRadius: 0
 
   onActiveChanged: {
     if (active) _targetHeight = qsmemColumn.implicitHeight + 24
@@ -71,23 +78,25 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
     Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
-    Row {
+    Item {
       width: parent.width
-      spacing: 8
+      height: Math.max(headerLabel.implicitHeight, headerData.implicitHeight)
 
       Text {
+        id: headerLabel
         text: "SKWD MEMORY"
         color: root.colors.primary
         font.pixelSize: 14
         font.family: Style.fontFamily
         font.weight: Font.DemiBold
+        anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
       }
 
-      Item { width: parent.width - 220; height: 1 }
-
       Column {
+        id: headerData
         spacing: 2
+        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         Text {
           text: root._fmt(root.totalMb) + " PSS"
@@ -126,27 +135,30 @@ Rectangle {
 
     Repeater {
       model: root.processes
-      delegate: Row {
+      delegate: Item {
+        id: procRow
         required property var modelData
         width: qsmemColumn.width
-        spacing: 8
+        height: Math.max(procLabel.implicitHeight, procData.implicitHeight)
 
         Text {
-          text: modelData.label
+          id: procLabel
+          text: procRow.modelData.label
           color: root.colors.tertiary
           font.pixelSize: 12
           font.family: Style.fontFamily
           font.weight: Font.Medium
+          anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
         }
 
-        Item { width: parent.width - 220; height: 1 }
-
         Column {
+          id: procData
           spacing: 1
+          anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
           Text {
-            text: root._fmt(modelData.pss)
+            text: root._fmt(procRow.modelData.pss)
             color: root.colors.tertiary
             font.pixelSize: 12
             font.family: Style.fontFamily
@@ -154,7 +166,7 @@ Rectangle {
             anchors.right: parent.right
           }
           Text {
-            text: root._fmt(modelData.rss) + " rss"
+            text: root._fmt(procRow.modelData.rss) + " rss"
             color: Qt.rgba(root.colors.tertiary.r, root.colors.tertiary.g, root.colors.tertiary.b, 0.45)
             font.pixelSize: 9
             font.family: Style.fontFamily
