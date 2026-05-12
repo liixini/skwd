@@ -10,6 +10,11 @@
 ![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
 ![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=for-the-badge&logo=nixos&logoColor=white)
 
+<img alt="image" src="https://github.com/user-attachments/assets/f66130c0-238d-47f9-8867-520af1552838" />
+<img alt="image" src="https://github.com/user-attachments/assets/dd73ab27-0217-4de1-a058-826534d4bb5b" />
+<img alt="image" src="https://github.com/user-attachments/assets/acaf4486-b42a-4766-bb41-e1edd2d9c835" />
+
+
 ## What is Skwd?
 
 Skwd is my personal shell that also happens to have a group of platform-agnostic aesthetics-first desktop widgets (desktop shell), of which all have parallellogram designs (and many more, if you aren't into the whole skewed thing). Also works flawlessly with my wallpaper manager [Skwd-wall](https://www.github.com/liixini/skwd-wall).
