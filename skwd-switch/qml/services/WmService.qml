@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import ".."
 
@@ -7,7 +8,17 @@ import ".."
 QtObject {
     id: service
 
-    readonly property string compositor: Config.compositor
+    readonly property string compositor: {
+        var d = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase()
+        if (d.indexOf("hyprland") !== -1) return "hyprland"
+        if (d.indexOf("sway") !== -1) return "sway"
+        if (d.indexOf("niri") !== -1) return "niri"
+        if (d.indexOf("kde") !== -1 || d.indexOf("plasma") !== -1) return "kwin"
+        if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")) return "hyprland"
+        if (Quickshell.env("SWAYSOCK")) return "sway"
+        if (Quickshell.env("NIRI_SOCKET")) return "niri"
+        return (Config.compositor || "niri").toLowerCase()
+    }
 
     
     function focusWindow(id) { _run(_focusWindowCmd(id)) }

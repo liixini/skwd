@@ -576,6 +576,7 @@ Scope {
           color: Qt.rgba(0, 0, 0, 0.75)
           border.width: 1
           border.color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.primary.r, windowSwitcher.colors.primary.g, windowSwitcher.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+          visible: model.workspaceId > 0
           z: 10
 
           Text {
@@ -715,6 +716,7 @@ Scope {
             height: 16
             radius: 4
             color: Qt.rgba(0, 0, 0, 0.6)
+            visible: gridCell.cellWsId > 0
             z: 5
             Text {
               id: gWsLbl
