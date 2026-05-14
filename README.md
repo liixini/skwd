@@ -63,7 +63,7 @@ For memory Skwd has a memory floor of about 210 MB whereas about ~20 MB of that 
 | [cava](https://github.com/karlstav/cava) (`cava`)                                                                                                  | Drives the audio visualiser bars in the music / lyrics widget                                                                                      |
 | [Nerd Fonts Symbols](https://www.nerdfonts.com) (`ttf-nerd-fonts-symbols`)                                                                         | UI icons, as they're symbols we can colour them any way we like which is good when Matugen does the colouring                                      |
 | [Roboto](https://fonts.google.com/specimen/Roboto) (`ttf-roboto`)                                                                                  | The main font family (regular + condensed + mono) used across Skwd                                                                                 |
-| [Material Design Icons](https://pictogrammers.com/library/mdi/) (`ttf-material-design-icons-desktop-git`)                                          | Not all symbols are in nerd fonts symbols, so this supplements that                                                                                |
+| [Material Design Icons](https://pictogrammers.com/library/mdi/) (`ttf-material-design-icons-extended`)                                             | Not all symbols are in nerd fonts symbols, so this supplements that                                                                                |
 
 ### Optional
 
