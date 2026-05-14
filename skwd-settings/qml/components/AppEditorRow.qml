@@ -20,65 +20,83 @@ Item {
   signal browseRequested()
   signal iconPickRequested()
 
-  height: _header.height + (_expanded ? _editor.height + 12 : 0)
-  Behavior on height { NumberAnimation { duration: Style.animFast; easing.type: Easing.OutCubic } }
+  width: parent ? parent.width : 0
+  height: _expanded ? _card.implicitHeight : _collapsedRow.height
+  Behavior on height { NumberAnimation { duration: Style.animNormal; easing.type: Easing.OutCubic } }
   clip: true
 
   Rectangle {
-    id: _header
-    width: parent.width
-    height: 32
-    radius: 4
-    color: _headerMouse.containsMouse
-      ? (row.colors ? Qt.rgba(row.colors.surfaceVariant.r, row.colors.surfaceVariant.g, row.colors.surfaceVariant.b, 0.4) : Qt.rgba(1, 1, 1, 0.06))
-      : (row.colors ? Qt.rgba(row.colors.surfaceContainer.r, row.colors.surfaceContainer.g, row.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.12, 0.18, 0.4))
+    id: _collapsedRow
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 44
+    radius: 6
+    z: 1
+    opacity: row._expanded ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: Style.animFast; easing.type: Easing.OutCubic } }
 
-    Row {
+    color: !row._expanded && _rowMouse.containsMouse
+      ? (row.colors ? Qt.rgba(row.colors.surfaceVariant.r, row.colors.surfaceVariant.g, row.colors.surfaceVariant.b, 0.35) : Qt.rgba(1, 1, 1, 0.05))
+      : "transparent"
+
+    Rectangle {
+      id: _iconBadge
+      width: 30; height: 30; radius: 5
       anchors.left: parent.left
       anchors.leftMargin: 10
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 8
+      color: row.colors ? Qt.rgba(row.colors.surfaceContainer.r, row.colors.surfaceContainer.g, row.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.1, 0.12, 0.18, 0.6)
+      border.width: 1
+      border.color: row.colors ? Qt.rgba(row.colors.outline.r, row.colors.outline.g, row.colors.outline.b, 0.15) : Qt.rgba(1, 1, 1, 0.06)
 
       Text {
-        text: row._expanded ? "▼" : "▶"
-        font.family: Style.fontFamily
-        font.pixelSize: 9
-        color: row.colors ? row.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
-        anchors.verticalCenter: parent.verticalCenter
-      }
-
-      Text {
+        anchors.centerIn: parent
         visible: row.customIcon !== "" && !row.useDesktopIcon
         text: row.customIcon
         font.family: Style.fontFamilyIcons
-        font.pixelSize: 14
-        color: row.colors ? row.colors.primary : Qt.rgba(1, 1, 1, 0.7)
-        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: 17
+        color: row.colors ? row.colors.primary : Qt.rgba(0.6, 0.8, 1.0, 0.9)
       }
-
       Text {
-        text: row.appName
+        anchors.centerIn: parent
+        visible: row.customIcon === "" || row.useDesktopIcon
+        text: row.appName.length > 0 ? row.appName.charAt(0).toUpperCase() : "?"
         font.family: Style.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: 14
         font.weight: Font.Medium
-        color: row.colors ? row.colors.surfaceText : "#fff"
-        anchors.verticalCenter: parent.verticalCenter
+        color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.45) : Qt.rgba(1, 1, 1, 0.35)
       }
     }
 
-    Row {
-      anchors.right: parent.right
+    Text {
+      id: _nameText
+      anchors.left: _iconBadge.right
+      anchors.leftMargin: 12
+      anchors.right: _badges.left
       anchors.rightMargin: 10
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 8
-      visible: !row._expanded
+      elide: Text.ElideRight
+      text: row.displayName !== "" ? (row.displayName + "  ·  " + row.appName) : row.appName
+      font.family: Style.fontFamily
+      font.pixelSize: 13
+      font.weight: Font.Medium
+      color: row.colors ? row.colors.surfaceText : "#fff"
+    }
+
+    Row {
+      id: _badges
+      anchors.right: _chevron.left
+      anchors.rightMargin: 10
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 6
 
       Text {
         visible: row.backgroundPath !== ""
         text: "splash"
         font.family: Style.fontFamilyCode
         font.pixelSize: 9
-        color: row.colors ? row.colors.primary : "#aaa"
+        color: row.colors ? row.colors.primary : "#8bceff"
         anchors.verticalCenter: parent.verticalCenter
       }
       Text {
@@ -86,7 +104,7 @@ Item {
         text: ".desktop"
         font.family: Style.fontFamilyCode
         font.pixelSize: 9
-        color: row.colors ? row.colors.tertiary : "#8bceff"
+        color: row.colors ? row.colors.tertiary : "#aaa"
         anchors.verticalCenter: parent.verticalCenter
       }
       Text {
@@ -99,8 +117,19 @@ Item {
       }
     }
 
+    Text {
+      id: _chevron
+      anchors.right: parent.right
+      anchors.rightMargin: 12
+      anchors.verticalCenter: parent.verticalCenter
+      text: "▶"
+      font.family: Style.fontFamily
+      font.pixelSize: 10
+      color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+    }
+
     MouseArea {
-      id: _headerMouse
+      id: _rowMouse
       anchors.fill: parent
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
@@ -108,34 +137,52 @@ Item {
     }
   }
 
-  Column {
-    id: _editor
-    anchors.top: _header.bottom
-    anchors.topMargin: 8
+  SettingsCard {
+    id: _card
     anchors.left: parent.left
-    anchors.leftMargin: 16
     anchors.right: parent.right
-    anchors.rightMargin: 8
-    spacing: 6
-    visible: row._expanded
+    anchors.top: parent.top
+    colors: row.colors
+    title: row.displayName !== "" ? row.displayName : row.appName
+    subtitle: row.displayName !== "" ? row.appName : ""
+    opacity: row._expanded ? 1 : 0
+    enabled: row._expanded
+    Behavior on opacity { NumberAnimation { duration: Style.animNormal; easing.type: Easing.OutCubic } }
 
-    Column {
-      width: parent.width
-      spacing: 4
+    titleAction: Rectangle {
+      width: 28; height: 22; radius: 4
+      color: _closeMouse.containsMouse
+        ? (row.colors ? Qt.rgba(row.colors.surfaceVariant.r, row.colors.surfaceVariant.g, row.colors.surfaceVariant.b, 0.4) : Qt.rgba(1, 1, 1, 0.06))
+        : "transparent"
 
       Text {
-        text: "BACKGROUND"
-        font.family: Style.fontFamily; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 1.2
-        color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+        anchors.centerIn: parent
+        text: "▼"
+        font.family: Style.fontFamily
+        font.pixelSize: 10
+        color: row.colors ? row.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
       }
+      MouseArea {
+        id: _closeMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: row._expanded = false
+      }
+    }
 
-      Row {
-        width: parent.width
+    Row {
+      width: parent.width
+      spacing: 16
+
+      Column {
+        id: _leftCol
+        width: 220
         spacing: 8
 
         Rectangle {
-          width: 120
-          height: 68
+          width: parent.width
+          height: 124
           radius: 4
           color: row.colors ? Qt.rgba(row.colors.surfaceContainer.r, row.colors.surfaceContainer.g, row.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.1, 0.12, 0.18, 0.6)
           border.width: 1
@@ -151,8 +198,8 @@ Item {
             asynchronous: true
             smooth: true
             cache: true
-            sourceSize.width: 240
-            sourceSize.height: 136
+            sourceSize.width: 440
+            sourceSize.height: 248
             visible: status === Image.Ready
           }
 
@@ -161,139 +208,136 @@ Item {
             anchors.centerIn: parent
             text: row.backgroundPath ? "…" : "no splash"
             font.family: Style.fontFamily
-            font.pixelSize: 9
+            font.pixelSize: 10
             color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
           }
         }
 
-        Column {
-          spacing: 4
-          width: parent.width - 128
-
-          SettingsTextInput {
-            colors: row.colors
-            label: "Path"
-            value: row.backgroundPath
-            placeholder: "~/appsplash/<file>.jpg"
-            onCommit: function(v) { row.saveField("background", v) }
-          }
-
-          Row {
-            spacing: 4
-
-            FilterButton {
-              colors: row.colors
-              label: "BROWSE"
-              skew: 8
-              height: 22
-              onClicked: row.browseRequested()
-            }
-
-            FilterButton {
-              colors: row.colors
-              label: "CLEAR"
-              skew: 8
-              height: 22
-              visible: row.backgroundPath !== ""
-              onClicked: row.saveField("background", "")
-            }
-          }
-        }
-      }
-    }
-
-    SettingsTextInput {
-      colors: row.colors
-      label: "Display name override"
-      value: row.displayName
-      placeholder: "(default)"
-      onCommit: function(v) { row.saveField("displayName", v) }
-    }
-
-    Column {
-      width: parent.width
-      spacing: 4
-
-      Text {
-        text: "CUSTOM ICON"
-        font.family: Style.fontFamily; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 1.2
-        color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
-      }
-
-      Row {
-        width: parent.width
-        spacing: 8
-
-        Rectangle {
-          width: 36; height: 36
-          radius: 4
-          color: row.colors ? Qt.rgba(row.colors.surfaceContainer.r, row.colors.surfaceContainer.g, row.colors.surfaceContainer.b, 0.7) : Qt.rgba(0.1, 0.12, 0.18, 0.7)
-          border.width: 1
-          border.color: row.colors ? Qt.rgba(row.colors.primary.r, row.colors.primary.g, row.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)
-          opacity: row.useDesktopIcon ? 0.4 : 1.0
-
-          Text {
-            anchors.centerIn: parent
-            text: row.customIcon
-            font.family: Style.fontFamilyIcons
-            font.pixelSize: 20
-            color: row.colors ? row.colors.primary : "#ffb4ab"
-            visible: row.customIcon !== ""
-          }
-          Text {
-            anchors.centerIn: parent
-            text: "?"
-            font.family: Style.fontFamily; font.pixelSize: 14
-            color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
-            visible: row.customIcon === ""
-          }
+        SettingsTextInput {
+          width: parent.width
+          colors: row.colors
+          label: "Splash path"
+          value: row.backgroundPath
+          placeholder: "~/appsplash/<file>.jpg"
+          onCommit: function(v) { row.saveField("background", v) }
         }
 
         Row {
           spacing: 4
-          anchors.verticalCenter: parent.verticalCenter
-
           FilterButton {
             colors: row.colors
-            label: "PICK"
+            label: "BROWSE"
             skew: 8
             height: 22
-            onClicked: row.iconPickRequested()
+            onClicked: row.browseRequested()
           }
-
           FilterButton {
             colors: row.colors
             label: "CLEAR"
             skew: 8
             height: 22
-            visible: row.customIcon !== ""
-            onClicked: row.saveField("icon", "")
+            visible: row.backgroundPath !== ""
+            onClicked: row.saveField("background", "")
           }
         }
       }
 
-      SettingsToggle {
-        width: parent.width
-        colors: row.colors
-        label: "Always use .desktop icon if available"
-        checked: row.useDesktopIcon
-        onToggle: function(v) { row.saveField("useDesktopIcon", v) }
+      Column {
+        width: parent.width - _leftCol.width - 16
+        spacing: 12
+
+        SettingsTextInput {
+          width: parent.width
+          colors: row.colors
+          label: "Display name"
+          value: row.displayName
+          placeholder: "(default)"
+          onCommit: function(v) { row.saveField("displayName", v) }
+        }
+
+        Row {
+          width: parent.width
+          spacing: 10
+
+          Rectangle {
+            width: 38; height: 38; radius: 5
+            anchors.verticalCenter: parent.verticalCenter
+            color: row.colors ? Qt.rgba(row.colors.surfaceContainer.r, row.colors.surfaceContainer.g, row.colors.surfaceContainer.b, 0.7) : Qt.rgba(0.1, 0.12, 0.18, 0.7)
+            border.width: 1
+            border.color: row.colors ? Qt.rgba(row.colors.primary.r, row.colors.primary.g, row.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)
+            opacity: row.useDesktopIcon ? 0.4 : 1.0
+
+            Text {
+              anchors.centerIn: parent
+              visible: row.customIcon !== ""
+              text: row.customIcon
+              font.family: Style.fontFamilyIcons
+              font.pixelSize: 20
+              color: row.colors ? row.colors.primary : "#ffb4ab"
+            }
+            Text {
+              anchors.centerIn: parent
+              visible: row.customIcon === ""
+              text: "?"
+              font.family: Style.fontFamily; font.pixelSize: 14
+              color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+            }
+          }
+
+          Column {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 4
+            Text {
+              text: "ICON"
+              font.family: Style.fontFamily; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 0.5
+              color: row.colors ? Qt.rgba(row.colors.surfaceText.r, row.colors.surfaceText.g, row.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+            }
+            Row {
+              spacing: 4
+              FilterButton {
+                colors: row.colors
+                label: "PICK"
+                skew: 8
+                height: 22
+                onClicked: row.iconPickRequested()
+              }
+              FilterButton {
+                colors: row.colors
+                label: "CLEAR"
+                skew: 8
+                height: 22
+                visible: row.customIcon !== ""
+                onClicked: row.saveField("icon", "")
+              }
+            }
+          }
+        }
+
+        SettingsToggle {
+          width: parent.width
+          colors: row.colors
+          label: "Always use .desktop icon"
+          checked: row.useDesktopIcon
+          onToggle: function(v) { row.saveField("useDesktopIcon", v) }
+        }
+
+        SettingsTextInput {
+          width: parent.width
+          colors: row.colors
+          label: "Tags"
+          value: row.tags
+          placeholder: "browser web internet"
+          onCommit: function(v) { row.saveField("tags", v) }
+        }
+
+        SettingsToggle {
+          width: parent.width
+          colors: row.colors
+          label: "Hidden from launcher"
+          checked: row.hidden
+          onToggle: function(v) { row.saveField("hidden", v) }
+        }
       }
-    }
-
-    SettingsTextInput {
-      colors: row.colors
-      label: "Tags (space-separated)"
-      value: row.tags
-      placeholder: "browser web internet"
-      onCommit: function(v) { row.saveField("tags", v) }
-    }
-
-    SettingsToggle {
-      colors: row.colors
-      label: "Hidden from launcher"
-      checked: row.hidden
-      onToggle: function(v) { row.saveField("hidden", v) }
     }
   }
 }

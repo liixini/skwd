@@ -786,42 +786,33 @@ Item {
         }
       }
 
-      Flickable {
+      Column {
+        id: appList
         width: parent.width
-        height: 320
-        contentHeight: appList.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+        spacing: 4
 
-        Column {
-          id: appList
-          width: parent.width
-          spacing: 4
+        Repeater {
+          model: root._appCacheList
 
-          Repeater {
-            model: root._appCacheList
-
-            delegate: AppEditorRow {
-              colors: root.colors
-              appName: model.name || ""
-              displayName: model.displayName || ""
-              backgroundPath: model.background || ""
-              customIcon: model.customIcon || ""
-              useDesktopIcon: model.useDesktopIcon || false
-              hidden: model.hidden || false
-              tags: model.tags || ""
-              width: appList.width
-              visible: root._appQuery === ""
-                || ((model.name        || "").toLowerCase().indexOf(root._appQuery) !== -1)
-                || ((model.displayName || "").toLowerCase().indexOf(root._appQuery) !== -1)
-              onSaveField: function(field, value) {
-                root._saveAppField(model.name, field, value)
-                root._reloadAppCache()
-              }
-              onBrowseRequested: root._openSplashPicker(model.name, model.background || "")
-              onIconPickRequested: root._openIconPicker(model.name, model.customIcon || "")
+          delegate: AppEditorRow {
+            colors: root.colors
+            appName: model.name || ""
+            displayName: model.displayName || ""
+            backgroundPath: model.background || ""
+            customIcon: model.customIcon || ""
+            useDesktopIcon: model.useDesktopIcon || false
+            hidden: model.hidden || false
+            tags: model.tags || ""
+            width: appList.width
+            visible: root._appQuery === ""
+              || ((model.name        || "").toLowerCase().indexOf(root._appQuery) !== -1)
+              || ((model.displayName || "").toLowerCase().indexOf(root._appQuery) !== -1)
+            onSaveField: function(field, value) {
+              root._saveAppField(model.name, field, value)
+              root._reloadAppCache()
             }
+            onBrowseRequested: root._openSplashPicker(model.name, model.background || "")
+            onIconPickRequested: root._openIconPicker(model.name, model.customIcon || "")
           }
         }
       }
