@@ -140,7 +140,10 @@ These are just starting points - swap the keys for whatever fits your layout. `s
 
 ```sh
 # Install Skwd and its dependencies
-yay -S skwd
+yay -S skwd-daemon-bin skwd ttf-material-design-icons-extended
+
+# Or build Skwd-daemon from source instead:
+# yay -S skwd-daemon skwd ttf-material-design-icons-extended
 
 # Enable Skwd-daemon
 systemctl --user enable --now skwd-daemon.service
