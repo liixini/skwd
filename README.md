@@ -1,3 +1,9 @@
+>[!IMPORTANT]
+> Currently rewriting Skwd using the same tech I developed for Skwd-wall.
+> Current progress in the video below - ~12 MB of RAM idle! :) Needs polish and more time in the oven still though.
+
+https://github.com/user-attachments/assets/0067a35e-5d62-496c-8a08-c573fce79805
+
 # Skwd - A skewed (Quick)shell
 
 ![Stars](https://img.shields.io/github/stars/liixini/skwd?style=for-the-badge)
