@@ -1,6 +1,6 @@
 >[!IMPORTANT]
 > Currently rewriting Skwd using the same tech I developed for Skwd-wall.
-> Current progress in the video below - ~12 MB of RAM idle! :) Needs polish and more time in the oven still though.
+> Current progress in the video below - ~12 MB of RAM idle! :) Needs polish and more time in the oven still though. The code in this repo is Skwd v1, and is not the same software as in the video.
 
 https://github.com/user-attachments/assets/0067a35e-5d62-496c-8a08-c573fce79805
 
