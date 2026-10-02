@@ -62,16 +62,29 @@ QtObject {
     property var _battery: _bar.battery ?? ({})
     readonly property var batteryNotifyRules: Array.isArray(_battery.notify) ? _battery.notify : []
 
-    readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
+    readonly property var _defaultBarLeftLayout:  ["workspaces", "cpu", "gpu", "memory"]
     readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
-    readonly property var _allBarWidgets: ["cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var _allBarWidgets: ["workspaces", "cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
     readonly property var barLeftLayout:  Array.isArray(_bar.leftLayout)  ? _bar.leftLayout.filter(s => _allBarWidgets.indexOf(s) !== -1)  : _defaultBarLeftLayout
     readonly property var barRightLayout: Array.isArray(_bar.rightLayout) ? _bar.rightLayout.filter(s => _allBarWidgets.indexOf(s) !== -1) : _defaultBarRightLayout
+    readonly property var workspaceGroups: {
+        let groups = _bar.workspaceGroups ?? _data.workspaceGroups
+        if (Array.isArray(groups) && groups.length > 0) return groups
+        return []
+    }
     readonly property var barWidgetOverrides: (typeof _bar.widgets === "object" && _bar.widgets !== null) ? _bar.widgets : ({})
     function barWidgetIcon(id, fallback)  { var o = barWidgetOverrides[id]; return (o && o.icon)  ? o.icon  : fallback }
     function barWidgetLabel(id, fallback) { var o = barWidgetOverrides[id]; return (o && o.label) ? o.label : fallback }
     function barWidgetMouseover(id)       { var o = barWidgetOverrides[id]; return !!(o && o.mouseover) }
     function barWidgetDisabled(id)        { var o = barWidgetOverrides[id]; return !!(o && o.disabled) }
+    function workspaceIdsForMonitor(name) {
+        let groups = workspaceGroups
+        for (let i = 0; i < groups.length; i++) {
+            let group = groups[i]
+            if (group && group.monitor === name && Array.isArray(group.workspaces)) return group.workspaces
+        }
+        return []
+    }
     readonly property var weatherCities: {
         let arr = _bar.weather?.cities
         if (Array.isArray(arr) && arr.length > 0) return arr.filter(s => typeof s === "string" && s.length > 0)

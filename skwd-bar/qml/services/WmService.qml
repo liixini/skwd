@@ -31,6 +31,7 @@ QtObject {
     signal windowsReady(var windows)
     signal workspacesReady(var workspaces)
     signal outputsReady(var outputs)
+    signal workspaceRulesReady(var rules)
 
     function listWindows() {
         _jsonStdout = []
@@ -48,6 +49,12 @@ QtObject {
         _outJsonStdout = []
         _listOutputsProcess.command = _listOutputsCmd()
         _listOutputsProcess.running = true
+    }
+
+    function listWorkspaceRules() {
+        _rulesJsonStdout = []
+        _listWorkspaceRulesProcess.command = _listWorkspaceRulesCmd()
+        _listWorkspaceRulesProcess.running = true
     }
 
     signal wmEvent(string eventData)
@@ -93,11 +100,23 @@ QtObject {
     function _focusWorkspaceCmd(id) {
         switch (compositor) {
         case "niri": return ["niri", "msg", "action", "focus-workspace", String(id)]
-        case "hyprland": return ["hyprctl", "dispatch", "workspace", String(id)]
+        case "hyprland": return ["sh", "-c", _hyprlandFocusWorkspaceSh(), "skwd-focus-workspace", String(id)]
         case "sway": return ["swaymsg", "workspace " + id]
         case "kwin": return ["kdotool", "set_desktop", String(id)]
         }
         return []
+    }
+
+    function _hyprlandFocusWorkspaceSh() {
+        return "id=$1; " +
+            "command -v hyprctl >/dev/null 2>&1 || exit 1; " +
+            "case \"$id\" in " +
+            "-[0-9]*|[0-9]*) lua=$id ;; " +
+            "*[!A-Za-z0-9_:+.-]*|'') exit 1 ;; " +
+            "*) lua=\"\\\"$id\\\"\" ;; " +
+            "esac; " +
+            "hyprctl dispatch \"hl.dsp.focus({ workspace = $lua })\" >/dev/null 2>&1 && exit 0; " +
+            "hyprctl dispatch workspace \"$id\""
     }
 
     function _quitCmd() {
@@ -140,6 +159,13 @@ QtObject {
             "swaymsg -t get_outputs | jq '[.[] | {key: .name, value: .}] | from_entries'"]
         }
         return ["echo", "{}"]
+    }
+
+    function _listWorkspaceRulesCmd() {
+        switch (compositor) {
+        case "hyprland": return ["sh", "-c", "command -v hyprctl >/dev/null 2>&1 && hyprctl -j workspacerules || echo '[]'"]
+        }
+        return ["echo", "[]"]
     }
 
     function _eventStreamCmd() {
@@ -248,6 +274,20 @@ QtObject {
         stdout: SplitParser {
             splitMarker: ""
             onRead: data => _outJsonStdout.push(data)
+        }
+    }
+
+    property var _rulesJsonStdout: []
+    property var _listWorkspaceRulesProcess: Process {
+        id: listWorkspaceRulesProcess
+        onExited: {
+            var text = _rulesJsonStdout.join("")
+            try { service.workspaceRulesReady(JSON.parse(text)) }
+            catch(e) { service.workspaceRulesReady([]) }
+        }
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: data => _rulesJsonStdout.push(data)
         }
     }
 

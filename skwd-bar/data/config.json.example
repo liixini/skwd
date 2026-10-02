@@ -11,6 +11,7 @@
   "components": {
     "bar": {
       "enabled": true,
+      "leftLayout": ["workspaces", "cpu", "memory"],
       "weather": {
         "enabled": true,
         "city": "YOUR_CITY"

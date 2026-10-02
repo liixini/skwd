@@ -20,6 +20,7 @@
     "bar": {
       "enabled": true,
       "style": "classic",
+      "leftLayout": ["workspaces", "cpu", "gpu", "memory"],
       "pillSideMargin": 12,
       "pillTopMargin": 8,
       "calendar": true,

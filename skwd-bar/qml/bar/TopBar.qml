@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Wayland
@@ -11,6 +12,8 @@ import ".."
 import "../services"
 import "lyrics"
 import "dropdowns"
+
+
 
 
 PanelWindow {
@@ -30,8 +33,14 @@ PanelWindow {
   required property string weatherTemp
   required property string weatherCity
   required property var weatherForecast
-  screen: Quickshell.screens.find(s => s.name === Config.mainMonitor) ?? Quickshell.screens[0]
-  WlrLayershell.namespace: "topbar"
+  required property var targetScreen
+  required property string monitorName
+  required property var workspaces
+  required property var workspaceRules
+  required property var activeWorkspaceByMonitor
+  required property string compositor
+  screen: targetScreen ?? Quickshell.screens.find(s => s.name === Config.mainMonitor) ?? Quickshell.screens[0]
+  WlrLayershell.namespace: "topbar-" + monitorName
   WlrLayershell.keyboardFocus: wifiDropdown.pendingSsid !== ""
     ? WlrKeyboardFocus.Exclusive
     : WlrKeyboardFocus.OnDemand
@@ -112,6 +121,70 @@ PanelWindow {
 
   function focusWorkspace(wsId) {
     WmService.focusWorkspace(wsId.toString())
+  }
+
+  function _workspaceById(id) {
+    var list = Array.isArray(bar.workspaces) ? bar.workspaces : []
+    for (var i = 0; i < list.length; i++) {
+      if (Number(list[i].id) === Number(id)) return list[i]
+    }
+    return null
+  }
+
+  function _workspaceModel() {
+    if (bar.compositor !== "hyprland") return []
+    var ids = bar._workspaceIdsForMonitor()
+    var activeId = bar.activeWorkspaceByMonitor ? bar.activeWorkspaceByMonitor[bar.monitorName] : null
+    var out = []
+    for (var i = 0; i < ids.length; i++) {
+      var id = Number(ids[i])
+      var ws = bar._workspaceById(id)
+      out.push({
+        id: id,
+        label: String(id),
+        active: Number(activeId) === id,
+        occupied: ws !== null && Number(ws.windows || 0) > 0
+      })
+    }
+    return out
+  }
+
+  function _workspaceIdsForMonitor() {
+    var configured = Config.workspaceIdsForMonitor(bar.monitorName)
+    if (configured.length > 0) return configured
+
+    var ids = []
+    var seen = ({})
+    var rules = Array.isArray(bar.workspaceRules) ? bar.workspaceRules : []
+    var singleMonitor = Quickshell.screens.length <= 1
+    for (var i = 0; i < rules.length; i++) {
+      var rule = rules[i]
+      if (!rule || (!singleMonitor && rule.monitor !== bar.monitorName)) continue
+
+      var value = rule.workspaceString ?? rule.workspace ?? rule.name
+      var id = Number(value)
+      if (!Number.isFinite(id) || seen[id]) continue
+
+      seen[id] = true
+      ids.push(id)
+    }
+
+    ids.sort(function(a, b) { return a - b })
+    return ids
+  }
+
+  function _surfaceColor(alpha) {
+    var c = bar.colors && bar.colors.surface ? bar.colors.surface : Qt.rgba(0.08, 0.08, 0.10, 1)
+    return Qt.rgba(c.r, c.g, c.b, alpha)
+  }
+
+  function _primaryColor() {
+    return bar.colors && bar.colors.primary ? bar.colors.primary : Qt.rgba(1, 0.71, 0.67, 1)
+  }
+
+  function _tertiaryColor(alpha) {
+    var c = bar.colors && bar.colors.tertiary ? bar.colors.tertiary : Qt.rgba(0.55, 0.81, 1, 1)
+    return alpha === undefined ? c : Qt.rgba(c.r, c.g, c.b, alpha)
   }
 
   property real dropdownMinWidth: 320
@@ -272,9 +345,54 @@ PanelWindow {
     }
   }
 
+  Component {
+    id: _workspacesComp
+    Item {
+      id: workspaceRoot
+      implicitWidth: workspaceRow.implicitWidth
+      implicitHeight: workspaceRow.implicitHeight
+      Row {
+        id: workspaceRow
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 6
+      Repeater {
+        model: bar._workspaceModel()
+        delegate: Item {
+          id: workspaceButton
+          required property var modelData
+          implicitWidth: Math.max(12, workspaceLabel.implicitWidth)
+          implicitHeight: 20
+          width: implicitWidth
+          height: implicitHeight
+
+          Text {
+              id: workspaceLabel
+              anchors.centerIn: parent
+              text: workspaceButton.modelData.label
+              font.pixelSize: 12
+              font.weight: workspaceButton.modelData.active ? Font.DemiBold : Font.Medium
+              font.family: Style.fontFamily
+              color: workspaceButton.modelData.active
+              ? bar._primaryColor()
+              : bar._tertiaryColor(workspaceButton.modelData.occupied ? 1 : 0.45)
+
+          MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: bar.focusWorkspace(workspaceButton.modelData.id)
+          }
+          }
+
+        }
+      }
+      }
+    }
+  }
+
 
   function _widgetComponent(id) {
     switch (id) {
+      case "workspaces":    return _workspacesComp
       case "cpu":           return _cpuComp
       case "gpu":           return _gpuComp
       case "memory":        return _memoryComp
@@ -302,6 +420,7 @@ PanelWindow {
 
   function _widgetHasData(id) {
     switch (id) {
+      case "workspaces": return bar._workspaceModel().length > 0
       case "cpu":        return true
       case "gpu":        return true
       case "memory":     return true
@@ -399,10 +518,10 @@ PanelWindow {
         id: cpuRow
         anchors.verticalCenter: parent.verticalCenter
         spacing: 4
-        Text { text: Config.barWidgetIcon("cpu", "󰻠"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
-        Text { visible: cpuRoot.overrideLabel !== ""; text: cpuRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
-        Text { visible: cpuRoot.overrideLabel === ""; text: Math.round(bar.cpuUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
-        Text { visible: cpuRoot.overrideLabel === ""; text: Math.round(bar.cpuTemp) + "°";  font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
+        Text { text: Config.barWidgetIcon("cpu", "󰻠"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar._primaryColor() }
+        Text { visible: cpuRoot.overrideLabel !== ""; text: cpuRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+        Text { visible: cpuRoot.overrideLabel === ""; text: Math.round(bar.cpuUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+        Text { visible: cpuRoot.overrideLabel === ""; text: Math.round(bar.cpuTemp) + "°";  font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
       }
       MouseArea {
         anchors.fill: parent
@@ -424,10 +543,10 @@ PanelWindow {
         id: gpuRow
         anchors.verticalCenter: parent.verticalCenter
         spacing: 4
-        Text { text: Config.barWidgetIcon("gpu", "󰢮"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
-        Text { visible: gpuRoot.overrideLabel !== ""; text: gpuRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
-        Text { visible: gpuRoot.overrideLabel === ""; text: Math.round(bar.gpuUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
-        Text { visible: gpuRoot.overrideLabel === ""; text: Math.round(bar.gpuTemp) + "°";  font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
+        Text { text: Config.barWidgetIcon("gpu", "󰢮"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar._primaryColor() }
+        Text { visible: gpuRoot.overrideLabel !== ""; text: gpuRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+        Text { visible: gpuRoot.overrideLabel === ""; text: Math.round(bar.gpuUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+        Text { visible: gpuRoot.overrideLabel === ""; text: Math.round(bar.gpuTemp) + "°";  font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
       }
       MouseArea {
         anchors.fill: parent
@@ -449,9 +568,9 @@ PanelWindow {
         id: memRow
         anchors.verticalCenter: parent.verticalCenter
         spacing: 4
-        Text { text: Config.barWidgetIcon("memory", "󰍛"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
-        Text { visible: memRoot.overrideLabel !== ""; text: memRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
-        Text { visible: memRoot.overrideLabel === ""; text: Math.round(bar.memUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary }
+        Text { text: Config.barWidgetIcon("memory", "󰍛"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar._primaryColor() }
+        Text { visible: memRoot.overrideLabel !== ""; text: memRoot.overrideLabel; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+        Text { visible: memRoot.overrideLabel === ""; text: Math.round(bar.memUsage) + "%"; font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor() }
       }
       MouseArea {
         anchors.fill: parent
@@ -473,12 +592,12 @@ PanelWindow {
         id: qsmemRow
         anchors.verticalCenter: parent.verticalCenter
         spacing: 4
-        Text { text: Config.barWidgetIcon("qsmem", "󰫳"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
+        Text { text: Config.barWidgetIcon("qsmem", "󰫳"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar._primaryColor() }
         Text {
           visible: qsmemRoot.overrideLabel !== ""
           text: qsmemRoot.overrideLabel
           font.pixelSize: 12; font.weight: Font.Medium
-          font.family: Style.fontFamily; color: bar.colors.tertiary
+          font.family: Style.fontFamily; color: bar._tertiaryColor()
         }
         Text {
           visible: qsmemRoot.overrideLabel === ""
@@ -486,7 +605,7 @@ PanelWindow {
             ? (qsmemInfo.totalMb / 1024).toFixed(1) + " GB"
             : Math.round(qsmemInfo.totalMb) + " MB"
           font.pixelSize: 12; font.weight: Font.Medium
-          font.family: Style.fontFamily; color: bar.colors.tertiary
+          font.family: Style.fontFamily; color: bar._tertiaryColor()
         }
       }
       MouseArea {
@@ -524,13 +643,13 @@ PanelWindow {
           }
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
         }
         Text {
           text: bar.weatherTemp
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
         }
       }
 
@@ -555,10 +674,10 @@ PanelWindow {
       Row {
         id: bluetoothRow
         spacing: 4
-        Text { text: Config.barWidgetIcon("bluetooth", "󰂯"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar.colors.primary }
+        Text { text: Config.barWidgetIcon("bluetooth", "󰂯"); font.pixelSize: 14; font.family: Style.fontFamilyNerdIcons; color: bar._primaryColor() }
         Text {
           text: bluetoothRoot.overrideLabel !== "" ? bluetoothRoot.overrideLabel : bluetoothInfo.batteryText
-          font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar.colors.tertiary
+          font.pixelSize: 12; font.weight: Font.Medium; font.family: Style.fontFamily; color: bar._tertiaryColor()
         }
       }
 
@@ -594,13 +713,13 @@ PanelWindow {
           })()
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
         }
         Text {
           text: wifiRoot.overrideLabel !== "" ? wifiRoot.overrideLabel : wifiInfo.ssid
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
         }
       }
 
@@ -636,7 +755,7 @@ PanelWindow {
           })()
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
           width: 16
           horizontalAlignment: Text.AlignHCenter
         }
@@ -644,7 +763,7 @@ PanelWindow {
           text: volumeRoot.overrideLabel !== "" ? volumeRoot.overrideLabel : Math.round((Pipewire.defaultAudioSink?.audio?.volume ?? 0) * 100) + "%"
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
           width: Math.max(implicitWidth, 28)
         }
       }
@@ -676,21 +795,21 @@ PanelWindow {
           text: clockRoot.overrideIcon
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
           anchors.verticalCenter: parent.verticalCenter
         }
         Row {
           spacing: 0
           anchors.verticalCenter: parent.verticalCenter
           visible: clockRoot.overrideLabel === ""
-          Text { text: Qt.formatTime(bar.clock.date, "HH"); font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar.colors.primary }
-          Text { text: ":";                                  font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar.colors.tertiary }
-          Text { text: Qt.formatTime(bar.clock.date, "mm"); font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar.colors.tertiary }
+          Text { text: Qt.formatTime(bar.clock.date, "HH"); font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar._primaryColor() }
+          Text { text: ":";                                  font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar._tertiaryColor() }
+          Text { text: Qt.formatTime(bar.clock.date, "mm"); font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar._tertiaryColor() }
         }
         Text {
           visible: clockRoot.overrideLabel !== ""
           text: clockRoot.overrideLabel
-          font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar.colors.primary
+          font.pixelSize: 13; font.weight: Font.DemiBold; font.family: Style.fontFamily; color: bar._primaryColor()
           anchors.verticalCenter: parent.verticalCenter
         }
       }
@@ -727,13 +846,13 @@ PanelWindow {
           })()
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
         }
         Text {
           text: brightnessRoot.overrideLabel !== "" ? brightnessRoot.overrideLabel : (brightnessInfo.percent + "%")
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
         }
       }
 
@@ -770,13 +889,13 @@ PanelWindow {
           font.family: Style.fontFamilyNerdIcons
           color: batteryInfo.charging
             ? Qt.rgba(0.4, 0.95, 0.6, 1)
-            : (batteryInfo.percentage < 15 ? Qt.rgba(0.95, 0.5, 0.4, 1) : bar.colors.primary)
+            : (batteryInfo.percentage < 15 ? Qt.rgba(0.95, 0.5, 0.4, 1) : bar._primaryColor())
         }
         Text {
           text: batteryRoot.overrideLabel !== "" ? batteryRoot.overrideLabel : (Math.round(batteryInfo.percentage) + "%")
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
         }
       }
 
@@ -900,13 +1019,13 @@ PanelWindow {
           text: notificationsRoot.overrideIcon !== "" ? notificationsRoot.overrideIcon : "󰂚"
           font.pixelSize: 14
           font.family: Style.fontFamilyNerdIcons
-          color: bar.colors.primary
+          color: bar._primaryColor()
         }
         Text {
           text: notificationsRoot.overrideLabel !== "" ? notificationsRoot.overrideLabel : notificationsHistory.count.toString()
           font.pixelSize: 12; font.weight: Font.Medium
           font.family: Style.fontFamily
-          color: bar.colors.tertiary
+          color: bar._tertiaryColor()
         }
       }
 
@@ -1051,7 +1170,7 @@ PanelWindow {
       anchors.top: parent.top
       height: bar.barHeight
       radius: height / 2
-      color: Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+      color: bar._surfaceColor(0.88)
       z: -2
     }
 
@@ -1132,6 +1251,7 @@ PanelWindow {
 
     Item {
       id: leftPanel
+      z: 7
       visible: leftContent.implicitWidth > 0
       anchors.left: parent.left
       anchors.top: parent.top
@@ -1143,6 +1263,9 @@ PanelWindow {
         id: leftBg
         visible: !bar._pill
         anchors.fill: parent
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        Component.onCompleted: requestPaint()
         onPaint: {
           var ctx = getContext("2d")
           ctx.clearRect(0, 0, width, height)
@@ -1152,7 +1275,7 @@ PanelWindow {
           ctx.lineTo(width - bar.diagSlant, height)
           ctx.lineTo(0, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+          ctx.fillStyle = bar._surfaceColor(0.88)
           ctx.fill()
         }
         Connections {
@@ -1192,6 +1315,7 @@ PanelWindow {
 
     LyricsIsland {
       id: lyricsIsland
+      z: 7
       visible: Config.musicEnabled && (!Config.musicAutohide || (bar.activePlayer && bar.activePlayer.isPlaying) || Config.musicAlwaysHoverable)
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: parent.top
@@ -1205,7 +1329,7 @@ PanelWindow {
 
     Item {
       id: rightPanel
-      z: 1
+      z: 7
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.topMargin: bar._pill ? 0 : bar.rightDropdownHeight
@@ -1216,6 +1340,9 @@ PanelWindow {
         id: rightBg
         visible: !bar._pill
         anchors.fill: parent
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        Component.onCompleted: requestPaint()
         onPaint: {
           var ctx = getContext("2d")
           ctx.clearRect(0, 0, width, height)
@@ -1225,7 +1352,7 @@ PanelWindow {
           ctx.lineTo(width, height)
           ctx.lineTo(bar.diagSlant, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+          ctx.fillStyle = bar._surfaceColor(0.88)
           ctx.fill()
         }
         Connections {

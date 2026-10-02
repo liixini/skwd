@@ -87,10 +87,11 @@ QtObject {
     property var _battery: _bar.battery ?? ({})
     readonly property var    barBatteryNotifyRules: Array.isArray(_battery.notify) ? _battery.notify : []
 
-    readonly property var _defaultBarLeftLayout:  ["cpu", "gpu", "memory"]
+    readonly property var _defaultBarLeftLayout:  ["workspaces", "cpu", "gpu", "memory"]
     readonly property var _defaultBarRightLayout: ["weather", "bluetooth", "wifi", "brightness", "battery", "volume", "notifications", "clock"]
-    readonly property var allBarWidgets: ["cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
+    readonly property var allBarWidgets: ["workspaces", "cpu", "gpu", "memory", "qsmem", "weather", "bluetooth", "wifi", "volume", "clock", "brightness", "battery", "notifications"]
     readonly property var barWidgetLabels: ({
+        "workspaces": "Hyprland workspaces",
         "cpu": "CPU",
         "gpu": "GPU",
         "memory": "Memory",
@@ -105,6 +106,7 @@ QtObject {
         "notifications": "Notifications"
     })
     readonly property var barWidgetIcons: ({
+        "workspaces":   "󰧨",
         "cpu":           "󰻠",
         "gpu":           "󰢮",
         "memory":        "󰍛",

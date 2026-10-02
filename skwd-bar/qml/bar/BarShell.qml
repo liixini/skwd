@@ -73,6 +73,9 @@ Scope {
         barShell.barVisible = !barShell.barVisible
       })
     }
+
+    barShell.refreshWorkspaceState()
+    WmService.startEventStream()
   }
 
   SystemClock {
@@ -94,22 +97,75 @@ Scope {
   property string weatherTemp: WeatherService.temp
   property string weatherDesc: WeatherService.description
   property var weatherForecast: WeatherService.forecast
+  property var workspaces: []
+  property var workspaceRules: []
+  property var outputs: ({})
+  property var activeWorkspaceByMonitor: ({})
 
-  TopBar {
-    id: topBar
-    visible: Config.barEnabled
-    colors: colors
-    clock: clock
-    barVisible: barShell.barVisible
-    activePlayer: barShell.activePlayer
-    cpuUsage: barShell.cpuUsage
-    memUsage: barShell.memUsage
-    gpuUsage: barShell.gpuUsage
-    cpuTemp: barShell.cpuTemp
-    gpuTemp: barShell.gpuTemp
-    weatherDesc: barShell.weatherDesc
-    weatherTemp: barShell.weatherTemp
-    weatherCity: barShell.weatherCity
-    weatherForecast: barShell.weatherForecast
+  function refreshWorkspaceState() {
+    WmService.listWorkspaces()
+    WmService.listOutputs()
+    WmService.listWorkspaceRules()
+  }
+
+  function updateActiveWorkspaceByMonitor(outputs) {
+    var next = {}
+    for (var name in outputs) {
+      var output = outputs[name]
+      var ws = output ? output.activeWorkspace : null
+      if (ws && ws.id !== undefined) next[name] = ws.id
+    }
+    barShell.activeWorkspaceByMonitor = next
+  }
+
+  Timer {
+    id: workspaceRefreshDebounce
+    interval: 150
+    repeat: false
+    onTriggered: barShell.refreshWorkspaceState()
+  }
+
+  Connections {
+    target: WmService
+    function onWorkspacesReady(workspaces) { barShell.workspaces = workspaces }
+    function onWorkspaceRulesReady(rules) { barShell.workspaceRules = rules }
+    function onOutputsReady(outputs) {
+      barShell.outputs = outputs
+      barShell.updateActiveWorkspaceByMonitor(outputs)
+    }
+    function onWmEvent(eventData) {
+      if (eventData.indexOf("workspace") !== -1 || eventData.indexOf("monitor") !== -1) {
+        workspaceRefreshDebounce.restart()
+      }
+    }
+  }
+
+  Variants {
+    model: Quickshell.screens
+
+    TopBar {
+      id: topBar
+      property var modelData
+      visible: Config.barEnabled
+      targetScreen: modelData
+      monitorName: modelData ? modelData.name : ""
+      colors: colors
+      clock: clock
+      barVisible: barShell.barVisible
+      activePlayer: barShell.activePlayer
+      cpuUsage: barShell.cpuUsage
+      memUsage: barShell.memUsage
+      gpuUsage: barShell.gpuUsage
+      cpuTemp: barShell.cpuTemp
+      gpuTemp: barShell.gpuTemp
+      weatherDesc: barShell.weatherDesc
+      weatherTemp: barShell.weatherTemp
+      weatherCity: barShell.weatherCity
+      weatherForecast: barShell.weatherForecast
+      workspaces: barShell.workspaces
+      workspaceRules: barShell.workspaceRules
+      activeWorkspaceByMonitor: barShell.activeWorkspaceByMonitor
+      compositor: WmService.compositor
+    }
   }
 }

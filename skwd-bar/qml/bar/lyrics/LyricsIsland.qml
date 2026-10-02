@@ -29,6 +29,17 @@ Item {
   property bool _hovered: false
   readonly property bool _islandActive: musicPlaying || (_hovered && Config.musicAlwaysHoverable)
   readonly property bool _controlsVisible: _hovered && _islandActive
+  function _surfaceColor(alpha) {
+    var c = lyricsIsland.colors && lyricsIsland.colors.surface ? lyricsIsland.colors.surface : Qt.rgba(0.08, 0.08, 0.10, 1)
+    return Qt.rgba(c.r, c.g, c.b, alpha)
+  }
+  function _primaryColor() {
+    return lyricsIsland.colors && lyricsIsland.colors.primary ? lyricsIsland.colors.primary : Qt.rgba(1, 0.71, 0.67, 1)
+  }
+  function _tertiaryColor(alpha) {
+    var c = lyricsIsland.colors && lyricsIsland.colors.tertiary ? lyricsIsland.colors.tertiary : Qt.rgba(0.55, 0.81, 1, 1)
+    return alpha === undefined ? c : Qt.rgba(c.r, c.g, c.b, alpha)
+  }
   opacity: _islandActive ? 1.0 : 0.0
   Behavior on opacity {
     NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
@@ -44,6 +55,9 @@ Item {
     id: centerBg
     visible: Config.barStyle !== "pill"
     anchors.fill: parent
+    onWidthChanged: requestPaint()
+    onHeightChanged: requestPaint()
+    Component.onCompleted: requestPaint()
     onPaint: {
       var ctx = getContext("2d")
       ctx.clearRect(0, 0, width, height)
@@ -53,7 +67,7 @@ Item {
       ctx.lineTo(width - lyricsIsland.diagSlant, height)
       ctx.lineTo(lyricsIsland.diagSlant, height)
       ctx.closePath()
-      ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 0.88)
+      ctx.fillStyle = lyricsIsland._surfaceColor(0.88)
       ctx.fill()
     }
     Connections {
@@ -73,7 +87,7 @@ Item {
     font.pixelSize: 12
     font.weight: Font.DemiBold
     font.family: Style.fontFamily
-    color: lyricsIsland.colors.primary
+    color: lyricsIsland._primaryColor()
     elide: Text.ElideRight
     maximumLineCount: 1
     width: Math.min(implicitWidth, 120)
@@ -99,7 +113,7 @@ Item {
     font.pixelSize: 12
     font.weight: Font.DemiBold
     font.family: Style.fontFamily
-    color: lyricsIsland.colors.primary
+    color: lyricsIsland._primaryColor()
     elide: Text.ElideRight
     maximumLineCount: 1
     width: Math.min(implicitWidth, 120)
@@ -137,7 +151,7 @@ Item {
       font.weight: Font.Medium
       font.italic: true
       font.family: Style.fontFamily
-      color: Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.6)
+      color: lyricsIsland._tertiaryColor(0.6)
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       maximumLineCount: 1
@@ -167,7 +181,7 @@ Item {
       font.weight: Font.Medium
       font.italic: true
       font.family: Style.fontFamily
-      color: lyricsIsland.colors.tertiary
+      color: lyricsIsland._tertiaryColor()
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       maximumLineCount: 1
@@ -183,7 +197,7 @@ Item {
       font.weight: Font.Medium
       font.italic: true
       font.family: Style.fontFamily
-      color: lyricsIsland.colors.tertiary
+      color: lyricsIsland._tertiaryColor()
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       maximumLineCount: 1
@@ -207,7 +221,7 @@ Item {
         width: lyricContainer.width
         text: service.currentLyric
         font: lyricCurrent.font
-        color: lyricsIsland.colors.primary
+        color: lyricsIsland._primaryColor()
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
         maximumLineCount: 1
@@ -304,8 +318,8 @@ Item {
       font.pixelSize: 18
       anchors.verticalCenter: parent.verticalCenter
       color: prevMouse.containsMouse
-        ? lyricsIsland.colors.primary
-        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.85)
+        ? lyricsIsland._primaryColor()
+        : Qt.rgba(lyricsIsland._tertiaryColor().r, lyricsIsland._tertiaryColor().g, lyricsIsland._tertiaryColor().b, 0.85)
       Behavior on color { ColorAnimation { duration: 120 } }
       MouseArea {
         id: prevMouse
@@ -324,8 +338,8 @@ Item {
       font.pixelSize: 22
       anchors.verticalCenter: parent.verticalCenter
       color: playPauseMouse.containsMouse
-        ? lyricsIsland.colors.primary
-        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.95)
+        ? lyricsIsland._primaryColor()
+        : Qt.rgba(lyricsIsland._tertiaryColor().r, lyricsIsland._tertiaryColor().g, lyricsIsland._tertiaryColor().b, 0.95)
       Behavior on color { ColorAnimation { duration: 120 } }
       MouseArea {
         id: playPauseMouse
@@ -348,8 +362,8 @@ Item {
       font.pixelSize: 18
       anchors.verticalCenter: parent.verticalCenter
       color: nextMouse.containsMouse
-        ? lyricsIsland.colors.primary
-        : Qt.rgba(lyricsIsland.colors.tertiary.r, lyricsIsland.colors.tertiary.g, lyricsIsland.colors.tertiary.b, 0.85)
+        ? lyricsIsland._primaryColor()
+        : Qt.rgba(lyricsIsland._tertiaryColor().r, lyricsIsland._tertiaryColor().g, lyricsIsland._tertiaryColor().b, 0.85)
       Behavior on color { ColorAnimation { duration: 120 } }
       MouseArea {
         id: nextMouse
@@ -1003,8 +1017,8 @@ Item {
       ctx.closePath()
       ctx.clip()
 
-      var pri = lyricsIsland.colors.primary
-      var ter = lyricsIsland.colors.tertiary
+      var pri = lyricsIsland._primaryColor()
+      var ter = lyricsIsland._tertiaryColor()
       var theme = lyricsIsland.vizTheme
 
       if (theme === "bars") {
@@ -1174,7 +1188,7 @@ Item {
       ctx.closePath()
       ctx.clip()
 
-      var sur = lyricsIsland.colors.surface
+      var sur = lyricsIsland._surfaceColor(1)
       var theme = lyricsIsland.vizTheme
 
       if (theme === "bars") {
@@ -1184,7 +1198,7 @@ Item {
         ctx.fillStyle = grad
         lyricsIsland._vizDrawBars(ctx, raw, baseY, maxAmp, dir, slant, width)
       } else if (theme === "neon") {
-        lyricsIsland._vizDrawNeonWave(ctx, raw, baseY, maxAmp, dir, slant, width, lyricsIsland.colors.primary)
+        lyricsIsland._vizDrawNeonWave(ctx, raw, baseY, maxAmp, dir, slant, width, lyricsIsland._primaryColor())
       } else if (theme === "pulse") {
         var cp2 = lyricsIsland.colors
         lyricsIsland._vizDrawPulse(ctx, raw, baseY, maxAmp, dir, slant, width, [
